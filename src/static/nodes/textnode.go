@@ -45,6 +45,6 @@ func (t *TextNode) EqN(a *TextNode) bool {
 	return false
 }
 
-func (t *TextNode) Repr() {
-	fmt.Printf("TextNode(%s, %s, %s)\n", t.Text, String(t.TextType), t.Url)
+func (t *TextNode) Repr() string {
+	return fmt.Sprintf("TextNode(%s, %s, %s)", t.Text, String(t.TextType), t.Url)
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"main/src/static/nodes"
 	"net/http"
 )
@@ -11,7 +12,7 @@ func main() {
 		TextType: nodes.Link,
 		Url:      "https://www.boot.dev",
 	}
-	node.Repr()
+	fmt.Println(node.Repr())
 
 	http.Handle("/", http.FileServer(http.Dir("./public")))
 	http.ListenAndServe(":3000", nil)
