@@ -5,7 +5,7 @@ import "fmt"
 type enum int
 
 const (
-	Normal enum = iota
+	Text enum = iota
 	Bold
 	Italic
 	Code
@@ -22,7 +22,7 @@ type TextNode struct {
 func String(t enum) string {
 	switch t {
 	case 0:
-		return "normal"
+		return "text"
 	case 1:
 		return "bold"
 	case 2:
