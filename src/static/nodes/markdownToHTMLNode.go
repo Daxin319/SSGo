@@ -18,9 +18,10 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 
 		switch bType {
 		case blocks.Heading:
+			trimmed := strings.TrimLeft(blck, "# ")
 			node = HTMLNode{
 				Tag:      "h" + strconv.Itoa(headerNum(blck)),
-				Children: TextToChildren(blck),
+				Children: TextToChildren(trimmed),
 			}
 			bNodes = append(bNodes, node)
 
@@ -32,9 +33,12 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 			bNodes = append(bNodes, node)
 
 		case blocks.Code:
+			if string(blck[len(blck)-1]) != "\n" {
+				blck += "\n"
+			}
 			child := HTMLNode{
 				Tag:   "code",
-				Value: strings.TrimLeft(strings.TrimRight(blck, "`"), "`\n"),
+				Value: strings.TrimLeft(strings.TrimSuffix(blck, "```\n"), "`"),
 			}
 			node = HTMLNode{
 				Tag:      "pre",

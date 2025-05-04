@@ -18,19 +18,21 @@ const (
 )
 
 func BlockToBlockType(block string) BlockType {
-	if block[:1] == "#" {
+	trimmed := strings.TrimLeft(strings.TrimRight(block, " \n"), " \n")
+
+	if len(trimmed) >= 1 && trimmed[0] == '#' {
 		return Heading
 	}
-	if block[:3] == "```" && block[len(block)-3:] == "```" {
+	if len(trimmed) >= 6 && trimmed[:3] == "```" && trimmed[len(trimmed)-3:] == "```" {
 		return Code
 	}
-	if block[:2] == "> " {
+	if len(trimmed) >= 2 && trimmed[:2] == "> " {
 		return Quote
 	}
-	if block[:2] == "- " || block[:2] == "* " {
+	if len(trimmed) >= 2 && (trimmed[:2] == "- " || trimmed[:2] == "* ") {
 		return UnorderedList
 	}
-	if isOrderedList(block) {
+	if isOrderedList(trimmed) {
 		return OrderedList
 	}
 	return Paragraph

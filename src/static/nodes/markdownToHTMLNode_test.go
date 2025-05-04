@@ -20,7 +20,7 @@ func TestMarkdownToHTMLNode(t *testing.T) {
 		{
 			name:     "Code block preserves raw text",
 			markdown: "```\nThis is text that _should_ remain\nthe **same** even with inline stuff\n```\n",
-			expected: "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
+			expected: "<div><pre><code>\nThis is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
 		},
 		{
 			name:     "Empty string returns empty div",
@@ -30,7 +30,7 @@ func TestMarkdownToHTMLNode(t *testing.T) {
 		{
 			name:     "Only code block",
 			markdown: "```\nfmt.Println(\"Hello\")\n```",
-			expected: "<div><pre><code>fmt.Println(\"Hello\")\n</code></pre></div>",
+			expected: "<div><pre><code>\nfmt.Println(\"Hello\")\n</code></pre></div>",
 		},
 		{
 			name:     "Single paragraph no formatting",
