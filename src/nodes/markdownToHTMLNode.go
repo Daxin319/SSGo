@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"fmt"
 	"main/src/blocks"
 	"strconv"
 	"strings"
@@ -87,13 +88,18 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 ///////////////////////////
 
 func headerNum(block string) int {
-	var n int
 
-	for i, char := range block {
-		if string(char) != "#" {
-			n = i - 1
+	trimmed := strings.TrimLeft(block, " ")
+
+	for i, char := range trimmed {
+		fmt.Println(string(char))
+		if i > 6 {
+			return 6
 		}
+		if string(char) != "#" {
+			return i
+		}
+		continue
 	}
-
-	return n
+	return 0
 }

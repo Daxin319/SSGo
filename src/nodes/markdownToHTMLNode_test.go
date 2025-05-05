@@ -52,6 +52,41 @@ func TestMarkdownToHTMLNode(t *testing.T) {
 			markdown: "1. First item\n2. Second item\n3. Third item\n\n",
 			expected: "<div><ol><li>First item</li><li>Second item</li><li>Third item</li></ol></div>",
 		},
+		{
+			name:     "H1 header",
+			markdown: "# This is an H1\n\n",
+			expected: "<div><h1>This is an H1</h1></div>",
+		},
+		{
+			name:     "H2 header",
+			markdown: "## Subheading H2\n\n",
+			expected: "<div><h2>Subheading H2</h2></div>",
+		},
+		{
+			name:     "H3 header",
+			markdown: "### Heading Three\n\n",
+			expected: "<div><h3>Heading Three</h3></div>",
+		},
+		{
+			name:     "H4 header",
+			markdown: "#### Fourth-level heading\n\n",
+			expected: "<div><h4>Fourth-level heading</h4></div>",
+		},
+		{
+			name:     "H5 header",
+			markdown: "##### H5 test\n\n",
+			expected: "<div><h5>H5 test</h5></div>",
+		},
+		{
+			name:     "H6 header",
+			markdown: "###### Tiny heading\n\n",
+			expected: "<div><h6>Tiny heading</h6></div>",
+		},
+		{
+			name:     "Header with inline formatting",
+			markdown: "### Bold and _italic_ in header\n\n",
+			expected: "<div><h3>Bold and <i>italic</i> in header</h3></div>",
+		},
 	}
 
 	for _, tt := range tests {
