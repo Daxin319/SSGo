@@ -2,7 +2,7 @@ package nodes
 
 import (
 	"bytes"
-	"main/src/static/blocks"
+	"main/src/blocks"
 	"strconv"
 	"strings"
 )

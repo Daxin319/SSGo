@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"main/src/static/nodes"
+	"main/src/nodes"
 	"net/http"
 )
 
