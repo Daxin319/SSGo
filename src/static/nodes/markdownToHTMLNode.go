@@ -27,9 +27,20 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 			bNodes = append(bNodes, node)
 
 		case blocks.Paragraph:
+			split := strings.Split(blck, "\n")
+			var replaced []string
+
+			for _, line := range split {
+				if len(line) == 0 || line == " " || line == "\n" {
+					continue
+				}
+				replaced = append(replaced, line)
+			}
+			joined := strings.Join(replaced, " ")
+
 			node = HTMLNode{
 				Tag:      "p",
-				Children: TextToChildren(blck),
+				Children: TextToChildren(joined),
 			}
 			bNodes = append(bNodes, node)
 

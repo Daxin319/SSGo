@@ -30,7 +30,6 @@ func SplitNodesDelimiter(oldNodes []TextNode, delimiter string, textType enum) (
 		if len(delimiter) > 1 {
 			idx += len(delimiter) - 1
 		}
-
 		idx2 := bytes.Index([]byte(node.Text[idx+1:]), []byte(delimiter))
 		if idx2 == -1 {
 			return []TextNode{}, errors.New("no closing delimiter found, invalid markdown syntax")

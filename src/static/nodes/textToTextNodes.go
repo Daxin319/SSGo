@@ -1,6 +1,9 @@
 package nodes
 
-import "regexp"
+import (
+	"regexp"
+	"strings"
+)
 
 func TextToTextNodes(s string) []TextNode {
 
@@ -54,7 +57,28 @@ func splitTextHelper(oldNodes []TextNode) []TextNode {
 			italic, _ := SplitNodesDelimiter(oldNodes, delim, Italic)
 			return italic
 		default:
-			results = append(results, node)
+			if string(node.Text[0]) != ">" {
+				results = append(results, node)
+				continue
+			}
+			split := strings.Split(node.Text, "\n")
+			var fixed []string
+
+			for _, item := range split {
+				if len(item) == 0 || item == " " || item == "\n" {
+					continue
+				}
+				trimmed := strings.TrimLeft(item, "> ")
+				fixed = append(fixed, trimmed)
+			}
+			joined := strings.Join(fixed, "\n")
+
+			newNode := TextNode{
+				Text:     joined,
+				TextType: Text,
+				Url:      "",
+			}
+			results = append(results, newNode)
 		}
 	}
 	return results

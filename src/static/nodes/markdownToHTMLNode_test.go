@@ -15,7 +15,7 @@ func TestMarkdownToHTMLNode(t *testing.T) {
 		{
 			name:     "Paragraphs with formatting",
 			markdown: "This is **bolded** paragraph\ntext in a p\ntag here\n\nThis is another paragraph with _italic_ text and `code` here\n\n",
-			expected: "<div><p>This is <b>bolded</b> paragraph\ntext in a p\ntag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>",
+			expected: "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>",
 		},
 		{
 			name:     "Code block preserves raw text",
