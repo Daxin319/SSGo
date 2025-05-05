@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"bytes"
 	"main/src/static/blocks"
 	"strconv"
 	"strings"
@@ -48,11 +49,13 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 
 		case blocks.Quote:
 			split := strings.Split(blck, "\n")
+			var fixed []string
 
 			for _, item := range split {
-				item = strings.TrimLeft(item, "> ")
+				trimmed := strings.TrimLeft(item, "> ")
+				fixed = append(fixed, trimmed)
 			}
-			joined := strings.Join(split, "\n")
+			joined := strings.Join(fixed, "\n")
 
 			node = HTMLNode{
 				Tag:      "blockquote",
@@ -62,41 +65,42 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 
 		case blocks.UnorderedList:
 			split := strings.Split(blck, "\n")
+			var children []HTMLNode
 
 			for _, item := range split {
-				item = strings.TrimLeft(item, ">* ")
-			}
-			joined := strings.Join(split, "\n")
-			children := TextToChildren(joined)
-			fixed := []HTMLNode{}
-
-			for _, child := range children {
-				fixed = append(fixed, child.fixLists())
+				trimmed := strings.TrimLeft(item, "-* ")
+				child := HTMLNode{
+					Tag:   "li",
+					Value: trimmed,
+				}
+				children = append(children, child)
 			}
 
 			node = HTMLNode{
 				Tag:      "ul",
-				Children: fixed,
+				Children: children,
 			}
 			bNodes = append(bNodes, node)
 
 		case blocks.OrderedList:
 			split := strings.Split(blck, "\n")
+			var children []HTMLNode
 
 			for _, item := range split {
-				item = strings.TrimLeft(item, " ")
-			}
-			joined := strings.Join(split, "\n")
-			children := TextToChildren(joined)
-			fixed := []HTMLNode{}
+				trim1 := strings.TrimLeft(item, " ")
+				wsIdx := bytes.Index([]byte(trim1), []byte(" "))
+				trimmed := trim1[wsIdx+1:]
 
-			for _, child := range children {
-				fixed = append(fixed, child.fixLists())
+				child := HTMLNode{
+					Tag:   "li",
+					Value: trimmed,
+				}
+				children = append(children, child)
 			}
 
 			node = HTMLNode{
 				Tag:      "ol",
-				Children: fixed,
+				Children: children,
 			}
 			bNodes = append(bNodes, node)
 

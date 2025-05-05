@@ -38,6 +38,7 @@ func splitTextHelper(oldNodes []TextNode) []TextNode {
 	for _, node := range oldNodes {
 		if node.TextType != Text {
 			results = append(results, node)
+			continue
 		}
 
 		delim := findFirstDelimiter(node.Text)
