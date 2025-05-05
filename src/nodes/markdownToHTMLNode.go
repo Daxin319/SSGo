@@ -1,7 +1,6 @@
 package nodes
 
 import (
-	"bytes"
 	"main/src/blocks"
 	"strconv"
 	"strings"
@@ -27,20 +26,11 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 			bNodes = append(bNodes, node)
 
 		case blocks.Paragraph:
-			split := strings.Split(blck, "\n")
-			var replaced []string
-
-			for _, line := range split {
-				if len(line) == 0 || line == " " || line == "\n" {
-					continue
-				}
-				replaced = append(replaced, line)
-			}
-			joined := strings.Join(replaced, " ")
+			cleaned := CleanNewlines(blck)
 
 			node = HTMLNode{
 				Tag:      "p",
-				Children: TextToChildren(joined),
+				Children: TextToChildren(cleaned),
 			}
 			bNodes = append(bNodes, node)
 
@@ -59,14 +49,7 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 			bNodes = append(bNodes, node)
 
 		case blocks.Quote:
-			split := strings.Split(blck, "\n")
-			var fixed []string
-
-			for _, item := range split {
-				trimmed := strings.TrimLeft(item, "> ")
-				fixed = append(fixed, trimmed)
-			}
-			joined := strings.Join(fixed, "\n")
+			joined := CleanQuotes(blck)
 
 			node = HTMLNode{
 				Tag:      "blockquote",
@@ -75,17 +58,7 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 			bNodes = append(bNodes, node)
 
 		case blocks.UnorderedList:
-			split := strings.Split(blck, "\n")
-			var children []HTMLNode
-
-			for _, item := range split {
-				trimmed := strings.TrimLeft(item, "-* ")
-				child := HTMLNode{
-					Tag:   "li",
-					Value: trimmed,
-				}
-				children = append(children, child)
-			}
+			children := CleanLists(blck)
 
 			node = HTMLNode{
 				Tag:      "ul",
@@ -94,20 +67,7 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 			bNodes = append(bNodes, node)
 
 		case blocks.OrderedList:
-			split := strings.Split(blck, "\n")
-			var children []HTMLNode
-
-			for _, item := range split {
-				trim1 := strings.TrimLeft(item, " ")
-				wsIdx := bytes.Index([]byte(trim1), []byte(" "))
-				trimmed := trim1[wsIdx+1:]
-
-				child := HTMLNode{
-					Tag:   "li",
-					Value: trimmed,
-				}
-				children = append(children, child)
-			}
+			children := CleanLists(blck)
 
 			node = HTMLNode{
 				Tag:      "ol",
@@ -136,11 +96,4 @@ func headerNum(block string) int {
 	}
 
 	return n
-}
-
-func (h *HTMLNode) fixLists() HTMLNode {
-	return HTMLNode{
-		Tag:   "li",
-		Value: h.Value,
-	}
 }
