@@ -1,19 +1,37 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"main/src/nodes"
-	"net/http"
+	"os"
 )
 
 func main() {
-	node := &nodes.TextNode{
-		Text:     "This is some anchor text",
-		TextType: nodes.Link,
-		Url:      "https://www.boot.dev",
+	path, err := os.Getwd()
+	if err != nil {
+		msg := fmt.Errorf("Error getting working directory: %v", err)
+		fmt.Println(msg)
 	}
-	fmt.Println(node.Repr())
+	err = CopyStaticToPublic(path)
+	if err != nil {
+		msg := fmt.Errorf("Error copying files: %v", err)
+		fmt.Println(msg)
+	}
+}
 
-	http.Handle("/", http.FileServer(http.Dir("./public")))
-	http.ListenAndServe(":3000", nil)
+func CopyStaticToPublic(path string) error {
+	pDir := path + "/public"
+	_, err := os.Stat(pDir)
+	if err == nil {
+		err = os.RemoveAll(pDir)
+	}
+	sDir := path + "/static"
+	dir := os.DirFS(sDir)
+
+	err = os.CopyFS(pDir, dir)
+	if err != nil {
+		fmt.Println(err)
+		return errors.New("Error copying files")
+	}
+	return nil
 }
