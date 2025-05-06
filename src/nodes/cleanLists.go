@@ -23,10 +23,11 @@ func CleanLists(s string) []HTMLNode {
 		} else {
 			trimmed = strings.TrimLeft(item, "-* ")
 		}
+		oldNodes := MarkdownToHTMLNode(trimmed)
 
 		child := HTMLNode{
 			Tag:   "li",
-			Value: trimmed,
+			Value: oldNodes.ToHTML(),
 		}
 
 		children = append(children, child)

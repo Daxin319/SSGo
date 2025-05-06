@@ -21,6 +21,10 @@ func BlockToBlockType(block string) BlockType {
 	trimmed := strings.TrimLeft(strings.TrimRight(block, " \n"), " \n")
 
 	if len(trimmed) >= 1 && trimmed[0] == '#' {
+		n := HeaderNum(trimmed)
+		if string(trimmed[n-1]) != "#" || string(trimmed[n]) != " " {
+			return Paragraph
+		}
 		return Heading
 	}
 	if len(trimmed) >= 6 && trimmed[:3] == "```" && trimmed[len(trimmed)-3:] == "```" {

@@ -1,7 +1,6 @@
 package nodes
 
 import (
-	"fmt"
 	"main/src/blocks"
 	"strconv"
 	"strings"
@@ -21,7 +20,7 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 		case blocks.Heading:
 			trimmed := strings.TrimLeft(blck, "# ")
 			node = HTMLNode{
-				Tag:      "h" + strconv.Itoa(headerNum(blck)),
+				Tag:      "h" + strconv.Itoa(blocks.HeaderNum(blck)),
 				Children: TextToChildren(trimmed),
 			}
 			bNodes = append(bNodes, node)
@@ -81,25 +80,4 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 		}
 	}
 	return HTMLNode{Tag: "div", Children: bNodes}
-}
-
-/////////////////////////////
-// Helper functions below //
-///////////////////////////
-
-func headerNum(block string) int {
-
-	trimmed := strings.TrimLeft(block, " ")
-
-	for i, char := range trimmed {
-		fmt.Println(string(char))
-		if i > 6 {
-			return 6
-		}
-		if string(char) != "#" {
-			return i
-		}
-		continue
-	}
-	return 0
 }

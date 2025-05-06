@@ -45,12 +45,12 @@ func TestMarkdownToHTMLNode(t *testing.T) {
 		{
 			name:     "Unordered list",
 			markdown: "- Item one\n- Item two\n- Item three\n\n",
-			expected: "<div><ul><li>Item one</li><li>Item two</li><li>Item three</li></ul></div>",
+			expected: "<div><ul><li><div><p>Item one</p></div></li><li><div><p>Item two</p></div></li><li><div><p>Item three</p></div></li></ul></div>",
 		},
 		{
 			name:     "Ordered list",
 			markdown: "1. First item\n2. Second item\n3. Third item\n\n",
-			expected: "<div><ol><li>First item</li><li>Second item</li><li>Third item</li></ol></div>",
+			expected: "<div><ol><li><div><p>First item</p></div></li><li><div><p>Second item</p></div></li><li><div><p>Third item</p></div></li></ol></div>",
 		},
 		{
 			name:     "H1 header",
