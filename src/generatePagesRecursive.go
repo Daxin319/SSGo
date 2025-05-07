@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func generatePagesRecursive(fromDirPath, destDirPath, templatePath string) {
+func GeneratePagesRecursive(fromDirPath, destDirPath, templatePath, basePath string) {
 	dir, err := os.ReadDir(fromDirPath)
 	if err != nil {
 		fmt.Println("error reading content directory")
@@ -18,9 +18,9 @@ func generatePagesRecursive(fromDirPath, destDirPath, templatePath string) {
 			if err != nil {
 				fmt.Println("error creating public directory")
 			}
-			generatePagesRecursive(fromDirPath+"/"+entry.Name(), destDirPath+"/"+entry.Name(), templatePath)
+			GeneratePagesRecursive(fromDirPath+"/"+entry.Name(), destDirPath+"/"+entry.Name(), templatePath, basePath)
 		} else {
-			generatePage(fromDirPath+"/"+entry.Name(), destDirPath+"/"+strings.TrimRight(entry.Name(), ".md")+".html", templatePath)
+			GeneratePage(fromDirPath+"/"+entry.Name(), destDirPath+"/"+strings.TrimRight(entry.Name(), ".md")+".html", templatePath, basePath)
 		}
 	}
 }

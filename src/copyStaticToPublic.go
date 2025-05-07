@@ -6,8 +6,8 @@ import (
 	"os"
 )
 
-func copyStaticToPublic(path string) error {
-	pDir := path + "/public"
+func CopyStaticToDocs(path string) error {
+	pDir := path + "/docs"
 	_, err := os.Stat(pDir)
 	if err == nil {
 		err = os.RemoveAll(pDir)

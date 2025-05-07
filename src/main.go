@@ -7,20 +7,29 @@ import (
 )
 
 func main() {
+	var basePath string
+	if len(os.Args) > 1 && os.Args[1] != "serve" {
+		basePath = os.Args[1]
+	} else {
+		basePath = "/"
+	}
+
 	path, err := os.Getwd()
 	if err != nil {
-		msg := fmt.Errorf("Error getting working directory: %v", err)
-		fmt.Println(msg)
+		fmt.Println("error getting working directory")
 	}
-	err = copyStaticToPublic(path)
+
+	err = CopyStaticToDocs(path)
 	if err != nil {
 		msg := fmt.Errorf("Error copying files: %v", err)
 		fmt.Println(msg)
 	}
 
-	generatePagesRecursive(path+"/content", path+"/public", path+"/template.html")
+	GeneratePagesRecursive(path+"/content", path+"/docs", path+"/template.html", basePath)
 
-	http.Handle("/", http.FileServer(http.Dir("./public")))
-	http.ListenAndServe(":3000", nil)
+	if len(os.Args) > 1 && os.Args[1] == "serve" {
+		http.Handle("/", http.FileServer(http.Dir("./docs")))
+		http.ListenAndServe(":3000", nil)
+	}
 
 }

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func generatePage(fromPath, destPath, templatePath string) {
+func GeneratePage(fromPath, destPath, templatePath, basePath string) {
 	fmt.Printf("Generating page from %s to %s using template at %s\n", fromPath, destPath, templatePath)
 
 	src, err := os.Open(fromPath)
@@ -27,7 +27,7 @@ func generatePage(fromPath, destPath, templatePath string) {
 		fmt.Println("error reading data from templatePath")
 	}
 
-	title, content, err := extractTitle(string(readSrc))
+	title, content, err := ExtractTitle(string(readSrc))
 
 	var cString string
 	node := nodes.MarkdownToHTMLNode(content)
@@ -35,7 +35,9 @@ func generatePage(fromPath, destPath, templatePath string) {
 	cString += node.ToHTML()
 
 	titleTemp := strings.Replace(string(readTemp), "{{ Title }}", title, 1)
-	finalTemp := strings.Replace(string(titleTemp), "{{ Content }}", cString, 1)
+	contentTemp := strings.Replace(string(titleTemp), "{{ Content }}", cString, 1)
+	hrefTemp := strings.ReplaceAll(string(contentTemp), `href="/`, `href="`+basePath)
+	finalTemp := strings.ReplaceAll(string(hrefTemp), `src="/`, `src="`+basePath)
 
 	os.WriteFile(destPath, []byte(finalTemp), 0755)
 }

@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func extractTitle(s string) (string, string, error) {
+func ExtractTitle(s string) (string, string, error) {
 	blcks := blocks.MarkdownToBlocks(s)
 	var fixed []string
 	var title string
