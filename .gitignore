@@ -24,6 +24,7 @@ go.work.sum
 # env file
 .env
 
-#Temp block on static and public dirs while testing
+#Temp block on static and public dirs as well as test files.
 static/*
 public/*
+*_test.go
