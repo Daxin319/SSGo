@@ -25,7 +25,7 @@ func main() {
 		fmt.Println(msg)
 	}
 
-	GeneratePagesRecursive(path+"/content", path+"/docs", path+"/template.html", basePath)
+	GeneratePagesRecursive(path+"/content", path+"/docs", path+"/template.html", basePath+"/docs")
 
 	if len(os.Args) > 1 && os.Args[1] == "serve" {
 		http.Handle("/", http.FileServer(http.Dir("./docs")))
