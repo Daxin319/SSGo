@@ -12,7 +12,7 @@ type HTMLNode struct {
 func (h *HTMLNode) PropsToHTML() string {
 	var finalString string
 	for key := range h.Props {
-		s := fmt.Sprintf(" %s=%s ", key, h.Props[key])
+		s := fmt.Sprintf(` %s="%s" `, key, h.Props[key])
 		finalString += s
 	}
 	return finalString
