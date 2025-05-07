@@ -37,5 +37,5 @@ func generatePage(fromPath, destPath, templatePath string) {
 	titleTemp := strings.Replace(string(readTemp), "{{ Title }}", title, 1)
 	finalTemp := strings.Replace(string(titleTemp), "{{ Content }}", cString, 1)
 
-	os.WriteFile("public/index.html", []byte(finalTemp), 0755)
+	os.WriteFile(destPath, []byte(finalTemp), 0755)
 }

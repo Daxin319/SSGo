@@ -15,13 +15,14 @@ func CleanLists(s string) []HTMLNode {
 	split := strings.Split(s, "\n")
 
 	for _, item := range split {
-		trim1 := strings.TrimLeft(item, "-* ")
+		trim1 := strings.TrimLeft(item, " ")
 
 		if re.MatchString(item) {
 			wsIdx := bytes.Index([]byte(trim1), []byte(" "))
 			trimmed = trim1[wsIdx+1:]
 		} else {
-			trimmed = strings.TrimLeft(item, "-* ")
+			trim2 := strings.TrimPrefix(item, "* ")
+			trimmed = strings.TrimPrefix(trim2, "- ")
 		}
 		oldNodes := MarkdownToHTMLNode(trimmed)
 

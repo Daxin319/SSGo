@@ -40,7 +40,7 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 			}
 			child := HTMLNode{
 				Tag:   "code",
-				Value: strings.TrimLeft(strings.TrimSuffix(blck, "```\n"), "`\n"),
+				Value: strings.TrimLeft(strings.TrimSuffix(blck, "```\n"), "`"),
 			}
 			node = HTMLNode{
 				Tag:      "pre",
