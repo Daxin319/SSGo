@@ -9,9 +9,9 @@ import (
 func main() {
 	var basePath string
 	if len(os.Args) > 1 && os.Args[1] != "serve" {
-		basePath = os.Args[1] + "/docs"
+		basePath = os.Args[1]
 	} else {
-		basePath = "/docs"
+		basePath = "/"
 	}
 
 	path, err := os.Getwd()
