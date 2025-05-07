@@ -36,7 +36,9 @@ func GeneratePage(fromPath, destPath, templatePath, basePath string) {
 
 	titleTemp := strings.Replace(string(readTemp), "{{ Title }}", title, 1)
 	contentTemp := strings.Replace(string(titleTemp), "{{ Content }}", cString, 1)
-	finalTemp := strings.ReplaceAll(string(contentTemp), `href="/`, `href="`+basePath+"/")
+	hrefTemp := strings.ReplaceAll(string(contentTemp), `href="/`, `href="`+basePath+"/")
+	srcTemp := strings.ReplaceAll(string(hrefTemp), `src=/`, `src=`+basePath+"/")
+	finalTemp := strings.Replace(string(srcTemp), `docs/index.css`, `index.css`, 1)
 
 	os.WriteFile(destPath, []byte(finalTemp), 0755)
 }
