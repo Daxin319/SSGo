@@ -1,1 +1,1 @@
-go build -o prod ./src/. && ./prod /SSGo/
+go build -o prod ./src/. && ./prod /SSGo
