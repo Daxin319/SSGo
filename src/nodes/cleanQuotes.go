@@ -8,6 +8,9 @@ func CleanQuotes(s string) string {
 
 	for _, item := range split {
 		trimmed := strings.TrimLeft(item, "> ")
+		if len(trimmed) == 0 {
+			trimmed = "<br><br>"
+		}
 		fixed = append(fixed, trimmed)
 	}
 	joined := strings.Join(fixed, "\n")
