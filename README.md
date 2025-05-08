@@ -6,9 +6,9 @@ I decided to start this project because I decided to change careers and get into
 
 It's rather basic at the moment, but I'm working on adding full commonmark support at this time. If you wish to use it yourself, it's quite simple, just check the Quick Start Section Below.
 
-Big shout out to [boot.dev](https://www.boot.dev/) for helping me learn to program, and for not being mad that I stole your markdown files to test the basic functions before I started expanding features.
+Big shout out to [boot.dev](https://www.boot.dev?bannerlord=daxin319) for helping me learn to program, and for not being mad that I stole your markdown files to test the basic functions before I started expanding features.
 
-## Quick Start/Usage Guide:
+## Quick Start/Usage Guide
 
 This program is designed to copy static resources into the `/docs` directory inside the repository from the `/static` directory, then process any markdown files in the `/content` directory into HTML which is then also put in the `/docs` directory to be served to localhost or formatted for your host service of choice.
 
@@ -22,6 +22,6 @@ To get started:
 6. ???
 7. Profit.
 
-### Contributing:
+### Contributing
 
-This has been a solo project, but it wouldn't have been possible without the efforts of the community at [boot.dev](https://www.boot.dev/) teaching me how to program from scratch, and supporting me in my journey to break into the tech scene.
+This has been a solo project, but it wouldn't have been possible without the efforts of the community at [boot.dev](https://www.boot.dev?bannerlord=daxin319) teaching me how to program from scratch, and supporting me in my journey to break into the tech scene.
