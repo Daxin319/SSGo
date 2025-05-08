@@ -1,6 +1,6 @@
-# SSGo
+# SSGo, a Static Site Generator written in Go
 
-This is a Static Site Generator written in Go (SSG + Go = SSGo). Currently offering basic markdown support, this can take markdown as input and will output HTML formatted to be either served to localhost:3000 for testing or to be uploaded to a domain host like gitpages.
+Currently offering basic markdown support, this can take markdown as input and will output HTML formatted to be either served to localhost:3000 for testing or to be uploaded to a domain host like gitpages.
 
 I decided to start this project because I decided to change careers and get into programming. I had written a version of this in Python3 earlier in my learning, so I decided to rewrite it in Go without using a guide to see how far I've come and to provide me with a way to show off my skill I've learned. What better way to show you know what you're doing than to make your [professional blog/information page](https://daxin319.github.io/SSGo/) something that was generated from a program that you wrote yourself?
 
