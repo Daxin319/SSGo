@@ -24,7 +24,7 @@ or by using the [official install docs](https://go.dev/doc/install) from the Go 
 4. In the `content` directory, place all of the `index.md` files that you would like to convert to html in the same file structure as your website.
 5. If you're testing offline, run `. serve.sh` from the root of the repository to generate all pages into the `/docs` directory and serve to `localhost:3000`.
 6. If you're uploading to git pages or something similar, run `. build.sh` from the root of the repository to build the html files into the `/docs` directory without serving to `localhost:3000`. 
-**You will need to edit the file and change my directory `/SSGo` to your own repository/directory name to make it build the correct HTML for your site.**
+**You will need to edit the build.sh file and change my directory** `/SSGo` **to your own repository/directory name to make it build the correct HTML for your site.**
 7. ???
 8. Profit.
 
