@@ -21,6 +21,17 @@ func TextNodeToHTMLNode(t *TextNode) (HTMLNode, error) {
 			Value: t.Text,
 		}, nil
 
+	case "boldtalic":
+		return HTMLNode{
+			Tag: "b",
+			Children: []HTMLNode{
+				{
+					Tag:   "i",
+					Value: t.Text,
+				},
+			},
+		}, nil
+
 	case "code":
 		return HTMLNode{
 			Tag:   "code",

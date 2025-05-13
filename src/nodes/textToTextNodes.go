@@ -16,13 +16,14 @@ func TextToTextNodes(s string) []TextNode {
 	pass1 := splitTextHelper([]TextNode{node})
 	pass2 := splitTextHelper(pass1)
 	pass3 := splitTextHelper(pass2)
-	images, _ := SplitNodesImage(pass3)
+	pass4 := splitTextHelper(pass3)
+	images, _ := SplitNodesImage(pass4)
 	final, _ := SplitNodesLink(images)
 
 	return final
 }
 
-var reg = regexp.MustCompile("`|\\*\\*|\\*|_")
+var reg = regexp.MustCompile("`|\\*\\*\\*|\\*\\*|\\*|_")
 
 func findFirstDelimiter(s string) string {
 	match := reg.FindStringIndex(s)
@@ -50,6 +51,9 @@ func splitTextHelper(oldNodes []TextNode) []TextNode {
 		case "`":
 			code, _ := SplitNodesDelimiter(oldNodes, delim, Code)
 			return code
+		case "***":
+			boldtalic, _ := SplitNodesDelimiter(oldNodes, delim, Boldtalic)
+			return boldtalic
 		case "**":
 			bold, _ := SplitNodesDelimiter(oldNodes, delim, Bold)
 			return bold
