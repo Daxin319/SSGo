@@ -22,7 +22,7 @@ func TextToTextNodes(s string) []TextNode {
 	return final
 }
 
-var reg = regexp.MustCompile("`|\\*\\*|_")
+var reg = regexp.MustCompile("`|\\*\\*|\\*|_")
 
 func findFirstDelimiter(s string) string {
 	match := reg.FindStringIndex(s)
@@ -39,7 +39,7 @@ func splitTextHelper(oldNodes []TextNode) []TextNode {
 	var results []TextNode
 
 	for _, node := range oldNodes {
-		if node.TextType != Text {
+		if node.TextType == Code {
 			results = append(results, node)
 			continue
 		}
@@ -53,7 +53,7 @@ func splitTextHelper(oldNodes []TextNode) []TextNode {
 		case "**":
 			bold, _ := SplitNodesDelimiter(oldNodes, delim, Bold)
 			return bold
-		case "_":
+		case "_", "*":
 			italic, _ := SplitNodesDelimiter(oldNodes, delim, Italic)
 			return italic
 		default:

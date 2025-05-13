@@ -8,7 +8,7 @@ import (
 func SplitNodesDelimiter(oldNodes []TextNode, delimiter string, textType enum) ([]TextNode, error) {
 	var newNodes []TextNode
 	for _, node := range oldNodes {
-		if node.TextType != Text {
+		if node.TextType == Code {
 			newNodes = append(newNodes, node)
 			continue
 		}
@@ -21,7 +21,7 @@ func SplitNodesDelimiter(oldNodes []TextNode, delimiter string, textType enum) (
 		if idx > 0 {
 			newNode := TextNode{
 				Text:     node.Text[:idx],
-				TextType: Text,
+				TextType: node.TextType,
 				Url:      node.Url,
 			}
 			newNodes = append(newNodes, newNode)
@@ -51,7 +51,7 @@ func SplitNodesDelimiter(oldNodes []TextNode, delimiter string, textType enum) (
 
 		finalNode := TextNode{
 			Text:     node.Text[idx+idx2+2:],
-			TextType: Text,
+			TextType: node.TextType,
 			Url:      node.Url,
 		}
 		recurse, err := SplitNodesDelimiter([]TextNode{finalNode}, delimiter, textType)
