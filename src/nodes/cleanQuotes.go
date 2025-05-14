@@ -13,7 +13,7 @@ func CleanQuotes(s string) string {
 		}
 		fixed = append(fixed, trimmed)
 	}
-	joined := strings.Join(fixed, "\n")
+	joined := strings.Join(fixed, "<br>")
 
 	return joined
 }

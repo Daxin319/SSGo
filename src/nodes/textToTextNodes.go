@@ -22,12 +22,21 @@ func TextToTextNodes(s string) []TextNode {
 	return final
 }
 
-var reg = regexp.MustCompile("`|\\*\\*\\*|\\*\\*|\\*|_")
+var reg1 = regexp.MustCompile("`|\\*\\*\\*")
+var boldReg = regexp.MustCompile("\\*\\*")
+var italicReg = regexp.MustCompile("\\*|_")
 
 func findFirstDelimiter(s string) string {
-	match := reg.FindStringIndex(s)
+	var match []int
+	match = reg1.FindStringIndex(s)
 	if len(match) == 0 {
-		return s
+		match = boldReg.FindStringIndex(s)
+		if len(match) == 0 {
+			match = italicReg.FindStringIndex(s)
+			if len(match) == 0 {
+				return s
+			}
+		}
 	}
 	if len(match) > 1 {
 		return string(s[match[0]:match[len(match)-1]])

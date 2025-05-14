@@ -21,8 +21,8 @@ func BlockToBlockType(block string) BlockType {
 	trimmed := strings.TrimLeft(strings.TrimRight(block, " \n"), " \n")
 
 	if len(trimmed) >= 1 && trimmed[0] == '#' {
-		n := HeaderNum(trimmed)
-		if string(trimmed[n-1]) != "#" || string(trimmed[n]) != " " {
+		n, i := HeaderNum(trimmed)
+		if string(trimmed[n-1]) != "#" || string(trimmed[i]) != " " {
 			return Paragraph
 		}
 		return Heading

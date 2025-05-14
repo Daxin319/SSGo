@@ -17,7 +17,7 @@ func ExtractTitle(s string) (string, string, error) {
 		if bType != blocks.Heading {
 			fixed = append(fixed, blck)
 		} else {
-			n := blocks.HeaderNum(blck)
+			n, _ := blocks.HeaderNum(blck)
 			if n != 1 {
 				fixed = append(fixed, blck)
 			} else {
