@@ -6,11 +6,11 @@ import (
 	"strings"
 )
 
-func MarkdownToHTMLNode(s string) HTMLNode {
-	var node HTMLNode
+func MarkdownToHTMLNode(s string) TextNode {
+	var node TextNode
 
 	blcks := blocks.MarkdownToBlocks(s)
-	bNodes := []HTMLNode{}
+	bNodes := []TextNode{}
 
 	for _, blck := range blcks {
 
@@ -19,7 +19,7 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 		switch bType {
 		case blocks.Heading:
 			trimmed := strings.TrimLeft(blck, "# ")
-			node = HTMLNode{
+			node = TextNode{
 				Tag:      "h" + strconv.Itoa(blocks.HeaderNum(blck)),
 				Children: TextToChildren(trimmed),
 			}
@@ -28,7 +28,7 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 		case blocks.Paragraph:
 			cleaned := CleanNewlines(blck)
 
-			node = HTMLNode{
+			node = TextNode{
 				Tag:      "p",
 				Children: TextToChildren(cleaned),
 			}
@@ -38,20 +38,20 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 			if string(blck[len(blck)-1]) != "\n" {
 				blck += "\n"
 			}
-			child := HTMLNode{
+			child := TextNode{
 				Tag:   "code",
 				Value: strings.TrimLeft(strings.TrimSuffix(blck, "```\n"), "`\n"),
 			}
-			node = HTMLNode{
+			node = TextNode{
 				Tag:      "pre",
-				Children: []HTMLNode{child},
+				Children: []TextNode{child},
 			}
 			bNodes = append(bNodes, node)
 
 		case blocks.Quote:
 			joined := CleanQuotes(blck)
 
-			node = HTMLNode{
+			node = TextNode{
 				Tag:      "blockquote",
 				Children: TextToChildren(joined),
 			}
@@ -60,7 +60,7 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 		case blocks.UnorderedList:
 			children := CleanLists(blck)
 
-			node = HTMLNode{
+			node = TextNode{
 				Tag:      "ul",
 				Children: children,
 			}
@@ -69,7 +69,7 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 		case blocks.OrderedList:
 			children := CleanLists(blck)
 
-			node = HTMLNode{
+			node = TextNode{
 				Tag:      "ol",
 				Children: children,
 			}
@@ -79,5 +79,5 @@ func MarkdownToHTMLNode(s string) HTMLNode {
 			continue
 		}
 	}
-	return HTMLNode{Tag: "div", Children: bNodes}
+	return TextNode{Tag: "div", Children: bNodes}
 }

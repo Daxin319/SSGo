@@ -1,7 +1,7 @@
 package nodes
 
-func TextToChildren(s string) []HTMLNode {
-	var final []HTMLNode
+func TextToChildren(s string) []TextNode {
+	var final []TextNode
 
 	nodes := TextToTextNodes(s)
 

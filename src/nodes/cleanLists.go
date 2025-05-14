@@ -8,8 +8,8 @@ import (
 
 var re = regexp.MustCompile(`^\d+\. `)
 
-func CleanLists(s string) []HTMLNode {
-	var children []HTMLNode
+func CleanLists(s string) []TextNode {
+	var children []TextNode
 	var trimmed string
 
 	split := strings.Split(s, "\n")
@@ -26,7 +26,7 @@ func CleanLists(s string) []HTMLNode {
 		}
 		oldNodes := MarkdownToHTMLNode(trimmed)
 
-		child := HTMLNode{
+		child := TextNode{
 			Tag:   "li",
 			Value: oldNodes.ToHTML(),
 		}

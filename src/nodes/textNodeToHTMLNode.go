@@ -2,29 +2,29 @@ package nodes
 
 import "errors"
 
-func TextNodeToHTMLNode(t *TextNode) (HTMLNode, error) {
+func TextNodeToHTMLNode(t *TextNode) (TextNode, error) {
 	switch String(t.TextType) {
 	case "text":
-		return HTMLNode{
+		return TextNode{
 			Value: t.Text,
 		}, nil
 
 	case "bold":
-		return HTMLNode{
+		return TextNode{
 			Tag:   "b",
 			Value: t.Text,
 		}, nil
 
 	case "italic":
-		return HTMLNode{
+		return TextNode{
 			Tag:   "i",
 			Value: t.Text,
 		}, nil
 
 	case "boldtalic":
-		return HTMLNode{
+		return TextNode{
 			Tag: "b",
-			Children: []HTMLNode{
+			Children: []TextNode{
 				{
 					Tag:   "i",
 					Value: t.Text,
@@ -33,20 +33,20 @@ func TextNodeToHTMLNode(t *TextNode) (HTMLNode, error) {
 		}, nil
 
 	case "code":
-		return HTMLNode{
+		return TextNode{
 			Tag:   "code",
 			Value: t.Text,
 		}, nil
 
 	case "link":
-		return HTMLNode{
+		return TextNode{
 			Tag:   "a",
 			Value: t.Text,
 			Props: map[string]string{"href": t.Url},
 		}, nil
 
 	case "image":
-		return HTMLNode{
+		return TextNode{
 			Tag: "img",
 			Props: map[string]string{
 				"src": t.Url,
@@ -55,7 +55,7 @@ func TextNodeToHTMLNode(t *TextNode) (HTMLNode, error) {
 		}, nil
 
 	default:
-		return HTMLNode{}, errors.New("invalid text type")
+		return TextNode{}, errors.New("invalid text type")
 	}
 
 }

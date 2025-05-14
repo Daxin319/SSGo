@@ -12,11 +12,10 @@ func TextToTextNodes(s string) []TextNode {
 		TextType: Text,
 		Url:      "",
 	}
-
-	pass1 := splitTextHelper([]TextNode{node})
-	pass2 := splitTextHelper(pass1)
-	pass3 := splitTextHelper(pass2)
-	pass4 := splitTextHelper(pass3)
+	pass1 := SplitTextHelper([]TextNode{node})
+	pass2 := SplitTextHelper(pass1)
+	pass3 := SplitTextHelper(pass2)
+	pass4 := SplitTextHelper(pass3)
 	images, _ := SplitNodesImage(pass4)
 	final, _ := SplitNodesLink(images)
 
@@ -36,7 +35,7 @@ func findFirstDelimiter(s string) string {
 	return string(s[match[0]])
 }
 
-func splitTextHelper(oldNodes []TextNode) []TextNode {
+func SplitTextHelper(oldNodes []TextNode) []TextNode {
 	var results []TextNode
 
 	for _, node := range oldNodes {
@@ -51,16 +50,19 @@ func splitTextHelper(oldNodes []TextNode) []TextNode {
 		case "`":
 			code, _ := SplitNodesDelimiter(oldNodes, delim, Code)
 			return code
-		case "***":
+		case `***`:
 			boldtalic, _ := SplitNodesDelimiter(oldNodes, delim, Boldtalic)
 			return boldtalic
-		case "**":
+		case `**`:
 			bold, _ := SplitNodesDelimiter(oldNodes, delim, Bold)
 			return bold
-		case "_", "*":
+		case "_", `*`:
 			italic, _ := SplitNodesDelimiter(oldNodes, delim, Italic)
 			return italic
 		default:
+			if len(node.Text) == 0 {
+				continue
+			}
 			if string(node.Text[0]) != ">" {
 				results = append(results, node)
 				continue
