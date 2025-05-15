@@ -18,11 +18,12 @@ func MarkdownToHTMLNode(s string) TextNode {
 		switch bType {
 		case blocks.Heading:
 			trimmed := strings.TrimLeft(blck, "# ")
-			n := blocks.HeaderNum(blck)
+			n, _ := blocks.HeaderNum(blck)
 			children := TextToChildren(trimmed)
 			node = TextNode{
 				Tag:      "h" + strconv.Itoa(n),
 				Children: mapToHTMLChildren(children, 0),
+>>>>>>> Stashed changes
 			}
 			bNodes = append(bNodes, node)
 

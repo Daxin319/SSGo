@@ -1,69 +1,92 @@
 package nodes
 
-import (
-	"bytes"
-	"errors"
-)
+import "strings"
 
-func SplitNodesDelimiter(oldNodes []TextNode, delimiter string, textType enum) ([]TextNode, error) {
-	var newNodes []TextNode
-	for _, node := range oldNodes {
-		if node.TextType == Code {
-			newNodes = append(newNodes, node)
+func SplitNodesDelimiter(nodes []TextNode, delimiter string, textType enum) ([]TextNode, error) {
+	var result []TextNode
+
+	for _, node := range nodes {
+		if node.TextType != Text || len(node.Children) > 0 {
+			result = append(result, node)
 			continue
 		}
 
-		delimByte := []byte(delimiter)
-
-		idx := bytes.Index([]byte(node.Text), delimByte)
-		if idx == -1 {
-			newNodes = append(newNodes, node)
-			continue
-		}
-		if idx > 0 {
-			newNode := TextNode{
-				Text:     node.Text[:idx],
-				TextType: node.TextType,
-				Url:      node.Url,
+		text := node.Text
+		start := 0
+		for start < len(text) {
+			open := indexOf(text, delimiter, start)
+			if open == -1 {
+				result = append(result, TextNode{
+					Text:     text[start:],
+					TextType: Text,
+					Url:      node.Url,
+				})
+				break
 			}
-			newNodes = append(newNodes, newNode)
-		}
 
-		if len(delimiter) > 1 {
-			idx += len(delimiter) - 1
-		}
-		idx2 := bytes.Index([]byte(node.Text[idx+1:]), delimByte)
-		if idx2 == -1 {
-			return []TextNode{}, errors.New("no closing delimiter found, invalid markdown syntax")
-		}
+			if open > start {
+				result = append(result, TextNode{
+					Text:     text[start:open],
+					TextType: Text,
+					Url:      node.Url,
+				})
+			}
 
-		newNode := TextNode{
-			Text:     node.Text[idx+1 : idx+idx2+1],
-			TextType: textType,
-			Url:      node.Url,
-		}
-		newNodes = append(newNodes, newNode)
+			innerStart := open + len(delimiter)
+			close := indexOf(text, delimiter, innerStart)
+			if close == -1 {
+				result = append(result, TextNode{
+					Text:     text[open:],
+					TextType: Text,
+					Url:      node.Url,
+				})
+				break
+			}
 
-		if len(delimiter) > 1 {
-			idx2 += len(delimiter) - 1
-		}
+			innerText := text[innerStart:close]
+			children := TextToTextNodesWithExclusion(innerText, textType)
 
-		if len(node.Text[idx+idx2+2:]) < 1 {
-			continue
-		}
+			hasVisibleContent := false
+			for _, c := range children {
+				if strings.TrimSpace(c.Text) != "" || c.Value != "" || len(c.Children) > 0 {
+					hasVisibleContent = true
+				}
+			}
 
-		finalNode := TextNode{
-			Text:     node.Text[idx+idx2+2:],
-			TextType: node.TextType,
-			Url:      node.Url,
+			if hasVisibleContent {
+				if textType == Boldtalic {
+					result = append(result, TextNode{
+						TextType: Bold,
+						Children: []TextNode{
+							{TextType: Italic, Children: children},
+						},
+					})
+				} else {
+					result = append(result, TextNode{
+						TextType: textType,
+						Children: children,
+					})
+				}
+			} else {
+				result = append(result, TextNode{
+					Text:     delimiter + innerText + delimiter,
+					TextType: Text,
+					Url:      node.Url,
+				})
+			}
+
+			start = close + len(delimiter)
 		}
-		recurse, err := SplitNodesDelimiter([]TextNode{finalNode}, delimiter, textType)
-		if err != nil {
-			return []TextNode{}, errors.New("invalid markdown syntax, unmatched delimiter found")
-		}
-		newNodes = append(newNodes, recurse...)
 	}
 
-	return newNodes, nil
+	return result, nil
+}
 
+func indexOf(text, delimiter string, start int) int {
+	for i := start; i <= len(text)-len(delimiter); i++ {
+		if text[i:i+len(delimiter)] == delimiter {
+			return i
+		}
+	}
+	return -1
 }

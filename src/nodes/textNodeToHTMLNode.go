@@ -1,61 +1,41 @@
 package nodes
 
-import "errors"
+func textNodeToHTMLNodeInternal(n TextNode, depth int) TextNode {
+	if depth > 1000 {
+		return TextNode{Tag: "", Text: "[DEPTH LIMIT HIT]"}
+	}
 
-func TextNodeToHTMLNode(t *TextNode) (TextNode, error) {
-	switch String(t.TextType) {
-	case "text":
-		return TextNode{
-			Value: t.Text,
-		}, nil
-
-	case "bold":
-		return TextNode{
-			Tag:   "b",
-			Value: t.Text,
-		}, nil
-
-	case "italic":
-		return TextNode{
-			Tag:   "i",
-			Value: t.Text,
-		}, nil
-
-	case "boldtalic":
+	switch n.TextType {
+	case Text:
+		return TextNode{Tag: "", Text: n.Text}
+	case Bold:
+		return TextNode{Tag: "b", Children: mapToHTMLChildren(n.Children, depth+1)}
+	case Italic:
+		return TextNode{Tag: "i", Children: mapToHTMLChildren(n.Children, depth+1)}
+	case Code:
+		return TextNode{Tag: "code", Children: mapToHTMLChildren(n.Children, depth+1)}
+	case Boldtalic:
 		return TextNode{
 			Tag: "b",
 			Children: []TextNode{
-				{
-					Tag:   "i",
-					Value: t.Text,
-				},
+				{Tag: "i", Children: mapToHTMLChildren(n.Children, depth+1)},
 			},
-		}, nil
-
-	case "code":
-		return TextNode{
-			Tag:   "code",
-			Value: t.Text,
-		}, nil
-
-	case "link":
-		return TextNode{
-			Tag:   "a",
-			Value: t.Text,
-			Props: map[string]string{"href": t.Url},
-		}, nil
-
-	case "image":
-		return TextNode{
-			Tag: "img",
-			Props: map[string]string{
-				"src": t.Url,
-				"alt": t.Text,
-			},
-		}, nil
-
+		}
 	default:
-		return TextNode{}, errors.New("invalid text type")
+		return TextNode{
+			Tag:      n.Tag,
+			Text:     n.Text,
+			Value:    n.Value,
+			Children: mapToHTMLChildren(n.Children, depth+1),
+			Props:    n.Props,
+		}
 	}
+}
 
+func mapToHTMLChildren(children []TextNode, depth int) []TextNode {
+	var out []TextNode
+	for _, c := range children {
+		out = append(out, textNodeToHTMLNodeInternal(c, depth))
+	}
+	return out
 }

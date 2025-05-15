@@ -28,3 +28,5 @@ go.work.sum
 static/*
 public/*
 *_test.go
+prod
+log.txt

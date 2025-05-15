@@ -1,38 +1,40 @@
 package nodes
 
 import (
-	"bytes"
-	"regexp"
 	"strings"
 )
 
-var re = regexp.MustCompile(`^\d+\. `)
+func CleanLists(block string) []TextNode {
+	lines := strings.Split(block, "\n")
+	var nodes []TextNode
 
-func CleanLists(s string) []TextNode {
-	var children []TextNode
-	var trimmed string
-
-	split := strings.Split(s, "\n")
-
-	for _, item := range split {
-		trim1 := strings.TrimLeft(item, " ")
-
-		if re.MatchString(item) {
-			wsIdx := bytes.Index([]byte(trim1), []byte(" "))
-			trimmed = trim1[wsIdx+1:]
-		} else {
-			trim2 := strings.TrimPrefix(item, "* ")
-			trimmed = strings.TrimPrefix(trim2, "- ")
-		}
-		oldNodes := MarkdownToHTMLNode(trimmed)
-
-		child := TextNode{
-			Tag:   "li",
-			Value: oldNodes.ToHTML(),
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			continue
 		}
 
-		children = append(children, child)
+		content := stripListMarker(trimmed)
+		children := TextToChildren(content)
+		children = mapToHTMLChildren(children, 0)
+
+		nodes = append(nodes, TextNode{
+			Tag:      "li",
+			Children: children,
+		})
 	}
 
-	return children
+	return nodes
+}
+
+func stripListMarker(line string) string {
+	if strings.HasPrefix(line, "- ") || strings.HasPrefix(line, "* ") {
+		return line[2:]
+	}
+	for i := 0; i < len(line); i++ {
+		if line[i] >= '0' && line[i] <= '9' && i+1 < len(line) && line[i+1] == '.' {
+			return strings.TrimSpace(line[i+2:])
+		}
+	}
+	return line
 }

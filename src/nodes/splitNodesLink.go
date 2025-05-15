@@ -20,7 +20,6 @@ func ExtractLinks(s string) []Lnk {
 
 	for _, m := range matches {
 		start := m[0]
-		// skip if preceded by '!'
 		if start > 0 && s[start-1] == '!' {
 			continue
 		}
