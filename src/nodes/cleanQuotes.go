@@ -1,6 +1,8 @@
 package nodes
 
-import "strings"
+import (
+	"strings"
+)
 
 func CleanQuotes(s string) string {
 	split := strings.Split(s, "\n")
@@ -13,7 +15,7 @@ func CleanQuotes(s string) string {
 		}
 		fixed = append(fixed, trimmed)
 	}
-	joined := strings.Join(fixed, "\n")
+	joined := strings.Join(fixed, "<br>")
 
 	return joined
 }

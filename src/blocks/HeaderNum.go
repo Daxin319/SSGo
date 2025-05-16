@@ -4,18 +4,18 @@ import (
 	"strings"
 )
 
-func HeaderNum(block string) int {
+func HeaderNum(block string) (int, int) {
 
 	trimmed := strings.TrimLeft(block, " ")
 
 	for i, char := range trimmed {
-		if i > 6 {
-			return 6
-		}
 		if string(char) != "#" {
-			return i
+			if i <= 6 {
+				return i, i
+			}
+			return 6, i
 		}
 		continue
 	}
-	return 0
+	return 0, 0
 }

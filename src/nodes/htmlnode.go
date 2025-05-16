@@ -11,7 +11,7 @@ const (
 	Code
 	Link
 	Image
-	Boldtalic
+	BoldItalic
 )
 
 type TextNode struct {
@@ -94,7 +94,7 @@ func String(t enum) string {
 	case 5:
 		return "image"
 	case 6:
-		return "boldtalic"
+		return "bolditalic"
 	default:
 		return "unknown text type"
 	}

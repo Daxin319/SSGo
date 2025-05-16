@@ -1,7 +1,6 @@
 package nodes
 
 import (
-	"fmt"
 	"main/src/blocks"
 	"strconv"
 	"strings"
@@ -18,7 +17,7 @@ func MarkdownToHTMLNode(s string) TextNode {
 		switch bType {
 		case blocks.Heading:
 			trimmed := strings.TrimLeft(blck, "# ")
-			n := blocks.HeaderNum(blck)
+			n, _ := blocks.HeaderNum(blck)
 			children := TextToChildren(trimmed)
 			node = TextNode{
 				Tag:      "h" + strconv.Itoa(n),
@@ -36,16 +35,17 @@ func MarkdownToHTMLNode(s string) TextNode {
 			bNodes = append(bNodes, node)
 
 		case blocks.Code:
-			if string(blck[len(blck)-1]) != "\n" {
+			if !strings.HasSuffix(blck, "\n") {
 				blck += "\n"
 			}
-			child := TextNode{
-				Tag:   "code",
-				Value: strings.TrimLeft(strings.TrimSuffix(blck, "```\n"), "`\n"),
+			content := strings.TrimLeft(strings.TrimSuffix(blck, "```\n"), "`\n")
+			codeNode := TextNode{
+				Tag:      "code",
+				Children: []TextNode{{Text: content, TextType: Text}},
 			}
 			node = TextNode{
 				Tag:      "pre",
-				Children: []TextNode{child},
+				Children: []TextNode{codeNode},
 			}
 			bNodes = append(bNodes, node)
 
@@ -80,19 +80,5 @@ func MarkdownToHTMLNode(s string) TextNode {
 	}
 
 	root := TextNode{Tag: "div", Children: bNodes}
-	PrintNodeTree(root, 0)
 	return root
-}
-
-func PrintNodeTree(node TextNode, depth int) {
-	if depth > 50 {
-		fmt.Printf("%s[DEPTH LIMIT HIT]\n", strings.Repeat("  ", depth))
-		return
-	}
-	fmt.Printf("%s[%s] Tag: %q, Text: %q, Children: %d\n",
-		strings.Repeat("  ", depth), String(node.TextType), node.Tag, node.Text, len(node.Children))
-
-	for _, child := range node.Children {
-		PrintNodeTree(child, depth+1)
-	}
 }

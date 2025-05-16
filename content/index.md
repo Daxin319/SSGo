@@ -19,7 +19,11 @@
 ## Inline Styles
 
 Normal text with *italic* or _italic_ markers. 
-**Bold** text and ***bolditalic*** text.
+**Bold** text and ***bolditalic*** text. *Italic with **bold inside***
+
+__Underscore Bold__, ___underscore bolditalic___, _Underscore Italic with __bold inside___
+
+__underscore bold with _italic inside___
 
 Correctly nested:
 
