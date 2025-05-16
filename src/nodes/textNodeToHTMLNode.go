@@ -1,61 +1,66 @@
 package nodes
 
-import "errors"
+func mapToHTMLChildren(children []TextNode, depth int) []TextNode {
+	out := make([]TextNode, 0, len(children))
+	for _, child := range children {
+		out = append(out, textNodeToHTMLNodeInternal(child, depth+1))
+	}
+	return out
+}
 
-func TextNodeToHTMLNode(t *TextNode) (TextNode, error) {
-	switch String(t.TextType) {
-	case "text":
-		return TextNode{
-			Value: t.Text,
-		}, nil
-
-	case "bold":
-		return TextNode{
-			Tag:   "b",
-			Value: t.Text,
-		}, nil
-
-	case "italic":
-		return TextNode{
-			Tag:   "i",
-			Value: t.Text,
-		}, nil
-
-	case "boldtalic":
-		return TextNode{
-			Tag: "b",
-			Children: []TextNode{
-				{
-					Tag:   "i",
-					Value: t.Text,
-				},
-			},
-		}, nil
-
-	case "code":
-		return TextNode{
-			Tag:   "code",
-			Value: t.Text,
-		}, nil
-
-	case "link":
-		return TextNode{
-			Tag:   "a",
-			Value: t.Text,
-			Props: map[string]string{"href": t.Url},
-		}, nil
-
-	case "image":
-		return TextNode{
-			Tag: "img",
-			Props: map[string]string{
-				"src": t.Url,
-				"alt": t.Text,
-			},
-		}, nil
-
-	default:
-		return TextNode{}, errors.New("invalid text type")
+func textNodeToHTMLNodeInternal(n TextNode, depth int) TextNode {
+	if depth > 1000 {
+		return n // prevent unbounded recursion
 	}
 
+	switch n.TextType {
+	case BoldItalic:
+		em := TextNode{Tag: "i", Children: mapToHTMLChildren(n.Children, depth+1)}
+		n.Tag = "b"
+		n.Children = []TextNode{em}
+		n.Text = ""
+	case Bold:
+		n.Tag = "strong"
+		n.Children = mapToHTMLChildren(n.Children, depth+1)
+		n.Text = ""
+	case Italic:
+		n.Tag = "em"
+		n.Children = mapToHTMLChildren(n.Children, depth+1)
+		n.Text = ""
+	case Code:
+		n.Tag = "code"
+		var content string
+		if n.Text != "" {
+			content = n.Text
+		} else {
+			content = n.Value
+		}
+		n.Children = []TextNode{{Text: content, TextType: Text}}
+		n.Text = ""
+		n.Value = ""
+	case Link:
+		n.Tag = "a"
+		if n.Props == nil {
+			n.Props = make(map[string]string)
+		}
+		n.Props["href"] = n.Url
+		n.Children = mapToHTMLChildren(n.Children, depth+1)
+		n.Text = ""
+	case Image:
+		n.Tag = "img"
+		if n.Props == nil {
+			n.Props = make(map[string]string)
+		}
+		n.Props["src"] = n.Url
+		alt := ""
+		for _, c := range n.Children {
+			alt += c.Text
+		}
+		n.Props["alt"] = alt
+		n.Children = nil
+		n.Text = ""
+	default:
+		n.Children = mapToHTMLChildren(n.Children, depth+1)
+	}
+	return n
 }

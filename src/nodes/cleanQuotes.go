@@ -1,6 +1,8 @@
 package nodes
 
-import "strings"
+import (
+	"strings"
+)
 
 func CleanQuotes(s string) string {
 	split := strings.Split(s, "\n")

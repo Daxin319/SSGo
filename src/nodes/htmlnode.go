@@ -11,7 +11,7 @@ const (
 	Code
 	Link
 	Image
-	Boldtalic
+	BoldItalic
 )
 
 type TextNode struct {
@@ -51,7 +51,13 @@ func (h *TextNode) ToHTML() string {
 
 	switch h.Tag {
 	case "":
-		return fmt.Sprintf("%s", h.Value)
+		if len(h.Children) > 0 {
+			for _, child := range h.Children {
+				cString += child.ToHTML()
+			}
+			return cString
+		}
+		return h.Text
 
 	case "img":
 		return fmt.Sprintf("<%s%s/>", h.Tag, h.PropsToHTML())
@@ -59,9 +65,9 @@ func (h *TextNode) ToHTML() string {
 	default:
 		if len(h.Children) == 0 {
 			if len(h.Props) == 0 {
-				return fmt.Sprintf("<%s>%s</%s>", h.Tag, h.Value, h.Tag)
+				return fmt.Sprintf("<%s>%s</%s>", h.Tag, h.Text, h.Tag)
 			}
-			return fmt.Sprintf("<%s%s>%s</%s>", h.Tag, h.PropsToHTML(), h.Value, h.Tag)
+			return fmt.Sprintf("<%s%s>%s</%s>", h.Tag, h.PropsToHTML(), h.Text, h.Tag)
 		}
 		for _, child := range h.Children {
 			cString += child.ToHTML()
@@ -88,7 +94,7 @@ func String(t enum) string {
 	case 5:
 		return "image"
 	case 6:
-		return "boldtalic"
+		return "bolditalic"
 	default:
 		return "unknown text type"
 	}

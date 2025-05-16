@@ -1,46 +1,88 @@
-# Tolkien Fan Club
+# H1 Heading
 
-![JRR Tolkien sitting](/images/tolkien.png)
+## H2 Heading
 
-Here's the deal, **I like Tolkien**.
+### H3 Heading
 
-> "I am in fact a Hobbit in all but size."
->
-> -- J.R.R. Tolkien
+#### H4 Heading
 
-## Blog posts
+##### H5 Heading
 
-- [Why Glorfindel is More Impressive than Legolas](/blog/glorfindel)
-- [Why Tom Bombadil Was a Mistake](/blog/tom)
-- [The Unparalleled Majesty of "The Lord of the Rings"](/blog/majesty)
+###### H6 Heading
 
-## Reasons I like Tolkien
+####### Treated as H6 by the generator
 
-- You can spend years studying the legendarium and still not understand its depths
-- It can be enjoyed by children and adults alike
-- Disney _didn't ruin it_ (okay, but Amazon might have)
-- It created an entirely new genre of fantasy
+######## Also treated as H6
 
-## My favorite characters (in order)
+---
 
-1. Gandalf
-2. Bilbo
-3. Sam
-4. Glorfindel
-5. Galadriel
-6. Elrond
-7. Thorin
-8. Sauron
-9. Aragorn
+## Inline Styles
 
-Here's what `elflang` looks like (the perfect coding language):
+Normal text with *italic* or _italic_ markers. 
+**Bold** text and ***bolditalic*** text. *Italic with **bold inside***
+
+__Underscore Bold__, ___underscore bolditalic___, _Underscore Italic with __bold inside___
+
+__underscore bold with _italic inside___
+
+Correctly nested:
+
+- **Bold _with italic inside_**
+- *Italic with **bold inside***
+- ***Bolditalic only with triple asterisks***
+- **_This should become bolditalic_**
+- _**So should this**_
+
+---
+
+## Lists
+
+Unordered:
+
+- Apple 
+- Banana 
+- Cherry 
+
+Ordered:
+
+1. One 
+2. Two 
+3. Three 
+
+---
+
+## Code Samples
+
+Inline: `let result = compute(42)`
+
+Block:
 
 ```
-func main(){
-    fmt.Println("Aiya, Ambar!")
+function greet(name) {
+  return "Hello, " + name;
 }
 ```
 
-Want to get in touch? [Contact me here](/contact).
+```
+# Bash style
+echo "Static sites are cool!"
+```
 
-This site was generated with a custom-built [static site generator](https://www.boot.dev/courses/build-static-site-generator-python) similar to the course on [Boot.dev](https://www.boot.dev). But is written in Go instead of python and was done without referencing the project instructions, only reverse engineering the python version that I wrote several months ago.
+---
+
+## Links and Images
+
+[Visit Boot.dev](https://www.boot.dev?bannerlord=daxin319) 
+![Placeholder](https://http.cat/images/200.jpg)
+
+---
+
+## Blockquote
+
+> This is a quote. 
+> It spans multiple lines.
+
+---
+
+***Final line with bolditalic***
+
