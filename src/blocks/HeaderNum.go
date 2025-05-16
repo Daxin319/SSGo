@@ -7,6 +7,7 @@ import (
 func HeaderNum(block string) (int, int) {
 
 	trimmed := strings.TrimLeft(block, " ")
+	max := 6
 
 	for i, char := range trimmed {
 		if string(char) != "#" {
@@ -15,7 +16,6 @@ func HeaderNum(block string) (int, int) {
 			}
 			return 6, i
 		}
-		continue
 	}
 	return 0, 0
 }
