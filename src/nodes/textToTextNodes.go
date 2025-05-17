@@ -1,23 +1,22 @@
+// textToTextNodes.go
 package nodes
 
 import (
 	"strings"
 )
 
-// TextToTextNodes converts a markdown string into a slice of TextNode representing inline structure.
+// TextToTextNodes converts a markdown string into inline TextNodes.
 func TextToTextNodes(s string) []TextNode {
 	tokens := tokenizeInline(s)
 	nodes, _ := parseTokens(tokens, 0, "")
 	return nodes
 }
 
-// token represents an inline delimiter or text span.
 type token struct {
-	kind  string // delimiter type or "text"
-	value string // raw text
+	kind  string // delimiter or "text"
+	value string
 }
 
-// tokenizeInline splits the input into tokens for inline parsing.
 func tokenizeInline(input string) []token {
 	var tokens []token
 	length := len(input)
@@ -35,59 +34,49 @@ func tokenizeInline(input string) []token {
 			i += 2
 			continue
 		}
-		// link start
-		if ch == '[' {
-			tokens = append(tokens, token{kind: "[", value: "["})
+		// link start or bracket
+		if ch == '[' || ch == ']' || ch == '(' || ch == ')' {
+			tokens = append(tokens, token{kind: string(ch), value: string(ch)})
 			i++
 			continue
 		}
-		// closing bracket
-		if ch == ']' {
-			tokens = append(tokens, token{kind: "]", value: "]"})
-			i++
-			continue
-		}
-		// parentheses
-		if ch == '(' {
-			tokens = append(tokens, token{kind: "(", value: "("})
-			i++
-			continue
-		}
-		if ch == ')' {
-			tokens = append(tokens, token{kind: ")", value: ")"})
-			i++
-			continue
-		}
-		// emphasis delimiter '*' or '_'
-		if ch == '*' || ch == '_' {
+		// emphasis / strikethrough / subscript delimiter
+		if ch == '*' || ch == '_' || ch == '~' {
 			runChar := ch
 			j := i
 			for j < length && input[j] == runChar {
 				j++
 			}
 			runLen := j - i
-			// triple delimiter
-			if runLen >= 3 {
-				tokens = append(tokens, token{kind: strings.Repeat(string(runChar), 3), value: strings.Repeat(string(runChar), 3)})
+			// only '*' and '_' get triple-delimiter
+			if (runChar == '*' || runChar == '_') && runLen >= 3 {
+				tokens = append(tokens, token{
+					kind:  strings.Repeat(string(runChar), 3),
+					value: strings.Repeat(string(runChar), 3),
+				})
 				runLen -= 3
 			}
-			// double delimiters
+			// doubles
 			for runLen >= 2 {
-				tokens = append(tokens, token{kind: strings.Repeat(string(runChar), 2), value: strings.Repeat(string(runChar), 2)})
+				tokens = append(tokens, token{
+					kind:  strings.Repeat(string(runChar), 2),
+					value: strings.Repeat(string(runChar), 2),
+				})
 				runLen -= 2
 			}
-			// single delimiter
+			// singles
 			if runLen == 1 {
 				tokens = append(tokens, token{kind: string(runChar), value: string(runChar)})
 			}
 			i = j
 			continue
 		}
-		// text span
+		// plain text
 		j := i
 		for j < length {
 			c := input[j]
-			if c == '`' || c == '!' || c == '[' || c == ']' || c == '(' || c == ')' || c == '*' || c == '_' {
+			if c == '`' || c == '!' || c == '[' || c == ']' ||
+				c == '(' || c == ')' || c == '*' || c == '_' || c == '~' {
 				break
 			}
 			j++
@@ -98,31 +87,40 @@ func tokenizeInline(input string) []token {
 	return tokens
 }
 
-// parseTokens parses tokens starting at pos until a matching closing delimiter (if any).
-// delim is the delimiter kind to close (e.g., "*", "**", "***", "_", "__", "___", "]", "").
 func parseTokens(tokens []token, pos int, delim string) ([]TextNode, int) {
 	var nodes []TextNode
 	for i := pos; i < len(tokens); {
 		tok := tokens[i]
-		// closing delimiter?
 		if delim != "" && tok.kind == delim {
 			return nodes, i
 		}
 		switch tok.kind {
+		case strings.Repeat("~", 2):
+			children, j := parseTokens(tokens, i+1, tok.kind)
+			nodes = append(nodes, TextNode{TextType: Strikethrough, Children: children})
+			i = j + 1
+
 		case strings.Repeat("*", 3), strings.Repeat("_", 3):
-			// bold + italic
 			children, j := parseTokens(tokens, i+1, tok.kind)
 			italicNode := TextNode{TextType: Italic, Children: children}
 			nodes = append(nodes, TextNode{TextType: Bold, Children: []TextNode{italicNode}})
 			i = j + 1
+
 		case strings.Repeat("*", 2), strings.Repeat("_", 2):
 			children, j := parseTokens(tokens, i+1, tok.kind)
 			nodes = append(nodes, TextNode{TextType: Bold, Children: children})
 			i = j + 1
+
 		case "*", "_":
 			children, j := parseTokens(tokens, i+1, tok.kind)
 			nodes = append(nodes, TextNode{TextType: Italic, Children: children})
 			i = j + 1
+
+		case "~":
+			children, j := parseTokens(tokens, i+1, tok.kind)
+			nodes = append(nodes, TextNode{TextType: Subscript, Children: children})
+			i = j + 1
+
 		case "`":
 			var sb strings.Builder
 			j := i + 1
@@ -136,6 +134,7 @@ func parseTokens(tokens []token, pos int, delim string) ([]TextNode, int) {
 			} else {
 				i = j
 			}
+
 		case "![", "[":
 			isImage := tok.kind == "!["
 			children, j1 := parseTokens(tokens, i+1, "]")
@@ -145,16 +144,17 @@ func parseTokens(tokens []token, pos int, delim string) ([]TextNode, int) {
 			}
 			if j1+3 < len(tokens) && tokens[j1+1].kind == "(" && tokens[j1+3].kind == ")" {
 				url := tokens[j1+2].value
+				t := Link
 				if isImage {
-					nodes = append(nodes, TextNode{TextType: Image, Url: url, Children: children})
-				} else {
-					nodes = append(nodes, TextNode{TextType: Link, Url: url, Children: children})
+					t = Image
 				}
+				nodes = append(nodes, TextNode{TextType: t, Url: url, Children: children})
 				i = j1 + 4
 			} else {
 				nodes = append(nodes, TextNode{TextType: Text, Text: tok.value})
 				i++
 			}
+
 		default:
 			nodes = append(nodes, TextNode{TextType: Text, Text: tok.value})
 			i++
