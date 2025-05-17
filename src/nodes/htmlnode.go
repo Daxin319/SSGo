@@ -12,6 +12,8 @@ const (
 	Link
 	Image
 	BoldItalic
+	Strikethrough
+	Subscript
 )
 
 type TextNode struct {
@@ -32,7 +34,7 @@ type HTMLNode interface {
 func (h *TextNode) PropsToHTML() string {
 	var finalString string
 	for key := range h.Props {
-		s := fmt.Sprintf(` %s="%s" `, key, h.Props[key])
+		s := fmt.Sprintf(` %s="%s"`, key, h.Props[key])
 		finalString += s
 	}
 	return finalString
@@ -41,27 +43,23 @@ func (h *TextNode) PropsToHTML() string {
 func (h *TextNode) Repr() string {
 	if h.Tag != "" {
 		return fmt.Sprintf("HTMLNode(%s, %s, %v, %v)", h.Tag, h.Value, h.Children, h.Props)
-	} else {
-		return fmt.Sprintf("TextNode(%s, %s, %s)", h.Text, String(h.TextType), h.Url)
 	}
+	return fmt.Sprintf("TextNode(%s, %s, %s)", h.Text, String(h.TextType), h.Url)
 }
 
 func (h *TextNode) ToHTML() string {
 	var cString string
-
 	switch h.Tag {
 	case "":
 		if len(h.Children) > 0 {
-			for _, child := range h.Children {
-				cString += child.ToHTML()
+			for _, c := range h.Children {
+				cString += c.ToHTML()
 			}
 			return cString
 		}
 		return h.Text
-
 	case "img":
 		return fmt.Sprintf("<%s%s/>", h.Tag, h.PropsToHTML())
-
 	default:
 		if len(h.Children) == 0 {
 			if len(h.Props) == 0 {
@@ -69,8 +67,8 @@ func (h *TextNode) ToHTML() string {
 			}
 			return fmt.Sprintf("<%s%s>%s</%s>", h.Tag, h.PropsToHTML(), h.Text, h.Tag)
 		}
-		for _, child := range h.Children {
-			cString += child.ToHTML()
+		for _, c := range h.Children {
+			cString += c.ToHTML()
 		}
 		if len(h.Props) == 0 {
 			return fmt.Sprintf("<%s>%s</%s>", h.Tag, cString, h.Tag)
@@ -81,19 +79,23 @@ func (h *TextNode) ToHTML() string {
 
 func String(t enum) string {
 	switch t {
-	case 0:
+	case Text:
 		return "text"
-	case 1:
+	case Bold:
 		return "bold"
-	case 2:
+	case Italic:
 		return "italic"
-	case 3:
+	case Strikethrough:
+		return "strikethrough"
+	case Subscript:
+		return "subscript"
+	case Code:
 		return "code"
-	case 4:
+	case Link:
 		return "link"
-	case 5:
+	case Image:
 		return "image"
-	case 6:
+	case BoldItalic:
 		return "bolditalic"
 	default:
 		return "unknown text type"

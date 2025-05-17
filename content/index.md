@@ -25,6 +25,15 @@ __Underscore Bold__, ___underscore bolditalic___, _Underscore Italic with __bold
 
 __underscore bold with _italic inside___
 
+This should be an example of ~~strikethrough~~ text
+~~so should this~~
+**Bold with ~~strikethrough~~ inside**
+_Italic with ~~strikethrough inside~~_
+~~Strikethrough with **bold and *italic inside***~~
+~~Strikethrough with ***bold and italic*** inside~~
+
+Normal text next to ~subscript text~ for scale, Normal text next to ~subscript with **bold inside** and ***bolditalic*** and *italic* and ~~strikethrough~~~ for scale
+
 Correctly nested:
 
 - **Bold _with italic inside_**
