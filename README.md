@@ -15,10 +15,10 @@ This program is designed to copy static resources into the `/docs` directory ins
 To get started:
 
 1. Install Go version 1.22 or later. You can use the Webi installer by running the following script in your terminal
-```
-curl -sS https://webi.sh/golang | sh
-```
-or by using the [official install docs](https://go.dev/doc/install) from the Go team.
+  - ```
+    curl -sS https://webi.sh/golang | sh
+    ```
+    or by using the [official install docs](https://go.dev/doc/install) from the Go team.
 2. Fork this repository, and clone your fork to your own machine.
 3. Put any static resources that will always be present into the static directory, you can organize them into dirs for website navigation as well.
 4. In the `content` directory, place all of the `index.md` files that you would like to convert to html in the same file structure as your website.

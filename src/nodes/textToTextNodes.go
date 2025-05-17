@@ -1,11 +1,12 @@
 // textToTextNodes.go
 package nodes
 
+
 import (
 	"strings"
 )
 
-// TextToTextNodes converts a markdown string into inline TextNodes.
+
 func TextToTextNodes(s string) []TextNode {
 	tokens := tokenizeInline(s)
 	nodes, _ := parseTokens(tokens, 0, "")
@@ -28,19 +29,16 @@ func tokenizeInline(input string) []token {
 			i++
 			continue
 		}
-		// image start
 		if i+1 < length && input[i] == '!' && input[i+1] == '[' {
 			tokens = append(tokens, token{kind: "![", value: "!["})
 			i += 2
 			continue
 		}
-		// link start or bracket
 		if ch == '[' || ch == ']' || ch == '(' || ch == ')' {
 			tokens = append(tokens, token{kind: string(ch), value: string(ch)})
 			i++
 			continue
 		}
-		// emphasis / strikethrough / subscript delimiter
 		if ch == '*' || ch == '_' || ch == '~' {
 			runChar := ch
 			j := i
@@ -48,7 +46,6 @@ func tokenizeInline(input string) []token {
 				j++
 			}
 			runLen := j - i
-			// only '*' and '_' get triple-delimiter
 			if (runChar == '*' || runChar == '_') && runLen >= 3 {
 				tokens = append(tokens, token{
 					kind:  strings.Repeat(string(runChar), 3),
@@ -56,7 +53,6 @@ func tokenizeInline(input string) []token {
 				})
 				runLen -= 3
 			}
-			// doubles
 			for runLen >= 2 {
 				tokens = append(tokens, token{
 					kind:  strings.Repeat(string(runChar), 2),
@@ -64,14 +60,12 @@ func tokenizeInline(input string) []token {
 				})
 				runLen -= 2
 			}
-			// singles
 			if runLen == 1 {
 				tokens = append(tokens, token{kind: string(runChar), value: string(runChar)})
 			}
 			i = j
 			continue
 		}
-		// plain text
 		j := i
 		for j < length {
 			c := input[j]
