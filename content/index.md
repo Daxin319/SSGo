@@ -34,7 +34,7 @@ _Italic with ~~strikethrough inside~~_
 ~~Strikethrough with **bold and *italic inside***~~
 ~~Strikethrough with ***bold and italic*** inside~~
 
-Normal text next to ~subscript text~ for scale, Normal text next to ~subscript with **bold inside** and ***bolditalic*** and *italic* and ~~strikethrough~~~ for scale
+Normal text next to ~subscript text~ for scale, Normal text next to ~subscript with **bold inside** and ***bolditalic*** and *italic* and ~~***bolditalic strikethrough***~~ and ~~strikethrough~~~ for scale
 
 Correctly nested:
 
