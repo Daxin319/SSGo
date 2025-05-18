@@ -24,6 +24,11 @@ func textNodeToHTMLNodeInternal(n TextNode, depth int) TextNode { // convert a s
 		n.Children = mapToHTMLChildren(n.Children, depth+1)
 		n.Text = ""
 
+	case Superscript:
+		n.Tag = "sup"
+		n.Children = mapToHTMLChildren(n.Children, depth+1)
+		n.Text = ""
+
 	case BoldItalic:
 		em := TextNode{Tag: "em", Children: mapToHTMLChildren(n.Children, depth+1)}
 		n.Tag = "strong"

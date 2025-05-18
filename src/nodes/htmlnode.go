@@ -14,6 +14,7 @@ const (
 	BoldItalic
 	Strikethrough
 	Subscript
+	Superscript
 )
 
 type TextNode struct {
@@ -89,6 +90,8 @@ func String(t enum) string {
 		return "strikethrough"
 	case Subscript:
 		return "subscript"
+	case Superscript:
+		return "superscript"
 	case Code:
 		return "code"
 	case Link:

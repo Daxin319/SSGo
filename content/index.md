@@ -36,6 +36,8 @@ _Italic with ~~strikethrough inside~~_
 
 Normal text next to ~subscript text~ for scale, Normal text next to ~subscript with **bold inside** and ***bolditalic*** and *italic* and ~~***bolditalic strikethrough***~~ and ~~strikethrough~~~ for scale
 
+Time to test ^superscript text^ and also test ^formatting ~~***inside the***~~ superscript^, 2^14^ karma gets you in the arcanum.
+
 Correctly nested:
 
 - **Bold _with italic inside_**
