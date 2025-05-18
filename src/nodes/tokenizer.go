@@ -2,77 +2,79 @@ package nodes
 
 import "strings"
 
+type delimRun struct {
+	marker string
+	pos    int
+}
 type token struct {
 	kind  string // delimiter type or "text"
 	value string // raw text
 }
 
 func tokenizeInline(input string) []token {
-	var tokens []token
-	length := len(input)
-	for i := 0; i < length; {
-		ch := input[i]
-		if ch == '`' {
-			tokens = append(tokens, token{kind: "`", value: "`"})
-			i++
+	var out []token
+	n := len(input)
+	for i := 0; i < n; {
+		r := input[i]
+		if r == '`' {
+			j := i + 1
+			for j < n && input[j] != '`' {
+				j++
+			}
+			if j < n {
+				out = append(out, token{kind: "code", value: input[i+1 : j]})
+				i = j + 1
+			} else {
+				out = append(out, token{kind: "text", value: "`"})
+				i++
+			}
 			continue
 		}
-		if i+1 < length && input[i] == '!' && input[i+1] == '[' {
-			tokens = append(tokens, token{kind: "![", value: "!["})
+		if r == '!' && i+1 < n && input[i+1] == '[' {
+			out = append(out, token{kind: "![", value: "!["})
 			i += 2
 			continue
 		}
-		if ch == '[' {
-			tokens = append(tokens, token{kind: "[", value: "["})
+		if r == '[' || r == ']' || r == '(' || r == ')' {
+			out = append(out, token{kind: string(r), value: string(r)})
 			i++
 			continue
 		}
-		if ch == ']' {
-			tokens = append(tokens, token{kind: "]", value: "]"})
-			i++
-			continue
-		}
-		if ch == '(' {
-			tokens = append(tokens, token{kind: "(", value: "("})
-			i++
-			continue
-		}
-		if ch == ')' {
-			tokens = append(tokens, token{kind: ")", value: ")"})
-			i++
-			continue
-		}
-		if ch == '*' || ch == '_' {
-			runChar := ch
+		if r == '*' || r == '_' || r == '~' {
 			j := i
-			for j < length && input[j] == runChar {
+			for j < n && input[j] == r {
 				j++
 			}
 			runLen := j - i
-			if runLen >= 3 {
-				tokens = append(tokens, token{kind: strings.Repeat(string(runChar), 3), value: strings.Repeat(string(runChar), 3)})
+			if (r == '*' || r == '_') && runLen >= 3 {
+				m := strings.Repeat(string(r), 3)
+				out = append(out, token{kind: m, value: m})
 				runLen -= 3
 			}
-			for runLen >= 2 {
-				tokens = append(tokens, token{kind: strings.Repeat(string(runChar), 2), value: strings.Repeat(string(runChar), 2)})
+			if runLen >= 2 {
+				m := strings.Repeat(string(r), 2)
+				out = append(out, token{kind: m, value: m})
 				runLen -= 2
 			}
 			if runLen == 1 {
-				tokens = append(tokens, token{kind: string(runChar), value: string(runChar)})
+				m := string(r)
+				out = append(out, token{kind: m, value: m})
 			}
 			i = j
 			continue
 		}
 		j := i
-		for j < length {
+		for j < n {
 			c := input[j]
-			if c == '`' || c == '!' || c == '[' || c == ']' || c == '(' || c == ')' || c == '*' || c == '_' {
+			if c == '`' || c == '!' || strings.ContainsAny(string(c), "[]()*_~") {
 				break
 			}
 			j++
 		}
-		tokens = append(tokens, token{kind: "text", value: input[i:j]})
+		if j > i {
+			out = append(out, token{kind: "text", value: input[i:j]})
+		}
 		i = j
 	}
-	return tokens
+	return out
 }

@@ -28,7 +28,9 @@ __underscore bold with _italic inside___
 This should be an example of ~~strikethrough~~ text
 ~~so should this~~
 **Bold with ~~strikethrough~~ inside**
+
 _Italic with ~~strikethrough inside~~_
+
 ~~Strikethrough with **bold and *italic inside***~~
 ~~Strikethrough with ***bold and italic*** inside~~
 
