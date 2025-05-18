@@ -1,6 +1,6 @@
 package nodes
 
-func mapToHTMLChildren(children []TextNode, depth int) []TextNode {
+func mapToHTMLChildren(children []TextNode, depth int) []TextNode { // iterate through children to convert to htmlnodes
 	out := make([]TextNode, 0, len(children))
 	for _, c := range children {
 		out = append(out, textNodeToHTMLNodeInternal(c, depth+1))
@@ -8,7 +8,7 @@ func mapToHTMLChildren(children []TextNode, depth int) []TextNode {
 	return out
 }
 
-func textNodeToHTMLNodeInternal(n TextNode, depth int) TextNode {
+func textNodeToHTMLNodeInternal(n TextNode, depth int) TextNode { // convert a single node to an htmlnode
 	if depth > 1000 {
 		return n
 	}
