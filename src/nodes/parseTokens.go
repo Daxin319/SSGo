@@ -2,11 +2,16 @@ package nodes
 
 import "strings"
 
+type delimRun struct {
+	marker string
+	pos    int
+}
+
 func parseInlineStack(tokens []token) []TextNode {
-	var nodes []TextNode
+	var nodes []TextNode // initialize textnode and delimrun slices
 	var stack []delimRun
 
-	wrap := func(marker string, children []TextNode) TextNode {
+	wrap := func(marker string, children []TextNode) TextNode { // anon func to wrap children in parent tag
 		switch marker {
 		case "*", "_":
 			return TextNode{TextType: Italic, Children: children}
@@ -22,96 +27,96 @@ func parseInlineStack(tokens []token) []TextNode {
 		return TextNode{TextType: Text, Text: marker}
 	}
 
-	processAsterisk := func(m string) {
+	processAsterisk := func(m string) { // anon func to handle all multi-delims
 		length := len(m)
-		char := m[0]
-		if length <= 2 {
-			for i := len(stack) - 1; i >= 0; i-- {
-				if stack[i].marker == m {
-					op := stack[i].pos
-					content := append([]TextNode{}, nodes[op:]...)
-					nodes = nodes[:op]
-					nodes = append(nodes, wrap(m, content))
-					stack = append(stack[:i], stack[i+1:]...)
+		char := m[0]     // start at 0
+		if length <= 2 { // if len > 1 we need to handle bold or strikethrough, or it could be a nested group
+			for i := len(stack) - 1; i >= 0; i-- { // start at top of stack
+				if stack[i].marker == m { // if target delim is found
+					op := stack[i].pos                             // set original position to current token
+					content := append([]TextNode{}, nodes[op:]...) // initialize content stack
+					nodes = nodes[:op]                             // set nodes stack equal to current nodes stack up to the current position
+					nodes = append(nodes, wrap(m, content))        // append content stack wrapped in parent delim
+					stack = append(stack[:i], stack[i+1:]...)      // pop token from stack
 					return
 				}
 			}
-			stack = append(stack, delimRun{marker: m, pos: len(nodes)})
+			stack = append(stack, delimRun{marker: m, pos: len(nodes)}) // append to be treated as plaintext
 			return
 		}
 		remaining := length
-		for remaining > 0 {
+		for remaining > 0 { // as long as there are still characters in the delim
 			idx := -1
 			for j := len(stack) - 1; j >= 0; j-- {
-				if stack[j].marker[0] == char && len(stack[j].marker) <= remaining {
-					idx = j
+				if stack[j].marker[0] == char && len(stack[j].marker) <= remaining { // iterate through the stack and check for first matching or smaller delim
+					idx = j // set index to current stack position
 					break
 				}
 			}
 			if idx >= 0 {
-				mrk := stack[idx].marker
-				op := stack[idx].pos
-				content := append([]TextNode{}, nodes[op:]...)
-				nodes = nodes[:op]
-				nodes = append(nodes, wrap(mrk, content))
-				stack = append(stack[:idx], stack[idx+1:]...)
-				remaining -= len(mrk)
+				mrk := stack[idx].marker                       // set marker2 to the marker at current stack index
+				op := stack[idx].pos                           // set original position to current stack position
+				content := append([]TextNode{}, nodes[op:]...) // initialize content stack of all nodes above this one in the nodes stack
+				nodes = nodes[:op]                             // set nodes stack equal to all nodes below this one in the stack
+				nodes = append(nodes, wrap(mrk, content))      // append content stack wrapped in parent delim to nodes stack
+				stack = append(stack[:idx], stack[idx+1:]...)  // pop this token off the stack
+				remaining -= len(mrk)                          // subtract the length of the current stack index from remaining to make sure triple delims are properly split and matched
 			} else {
-				marker := strings.Repeat(string(char), remaining)
+				marker := strings.Repeat(string(char), remaining) // treat as unmatched, append all to stack
 				stack = append(stack, delimRun{marker: marker, pos: len(nodes)})
 				break
 			}
 		}
 	}
 
-	for i := 0; i < len(tokens); {
-		t := tokens[i]
-		switch t.kind {
+	for i := 0; i < len(tokens); { // Main loop
+		t := tokens[i]  // start with the first token
+		switch t.kind { // switch on text type
 		case "code":
-			nodes = append(nodes, TextNode{TextType: Code, Text: t.value})
+			nodes = append(nodes, TextNode{TextType: Code, Text: t.value}) // code gets no formatting, append and move on
 			i++
-		case "![", "[":
-			isImage := t.kind == "!["
-			j := i + 1
-			for j < len(tokens) && tokens[j].kind != "]" {
-				j++
+		case "![", "[": // image or link
+			isImage := t.kind == "!["                      // bool isImage
+			j := i + 1                                     // current pos is next token
+			for j < len(tokens) && tokens[j].kind != "]" { // if not the last token and not a closing token
+				j++ // move forward to the next token
 			}
-			altNodes := parseInlineStack(tokens[i+1 : j])
-			if j+3 < len(tokens) && tokens[j+1].kind == "(" && tokens[j+3].kind == ")" {
+			altNodes := parseInlineStack(tokens[i+1 : j])                                // parse all tokens from original pos +1 to current token
+			if j+3 < len(tokens) && tokens[j+1].kind == "(" && tokens[j+3].kind == ")" { // if not end of string and parens are in the correct stack locations Link
 				url := tokens[j+2].value
-				typeEnum := Link
-				if isImage {
+				typeEnum := Link // set enum to link
+				if isImage {     // check image bool and change enum to image if true
 					typeEnum = Image
 				}
-				nodes = append(nodes, TextNode{TextType: typeEnum, Url: url, Children: altNodes})
-				i = j + 4
+				nodes = append(nodes, TextNode{TextType: typeEnum, Url: url, Children: altNodes}) // append nodes generated by parseInlineStack
+				i = j + 4                                                                         // set original pos to appropriate token accounting for link/image delimiter
 			} else {
-				nodes = append(nodes, TextNode{TextType: Text, Text: t.value})
-				i++
+				nodes = append(nodes, TextNode{TextType: Text, Text: t.value}) // otherwise treat it as plaintext
+				i++                                                            // move forward one token
 			}
 		case "*", "**", "***", "_", "__", "___":
-			processAsterisk(t.kind)
-			i++
-		case "~~", "~":
-			m := t.kind
+			processAsterisk(t.kind) // handle this bullshit
+			i++                     // next token
+		case "~~", "~": // strikethrough or subscript
+			m := t.kind // multi-delim is the string of the delim
 			closed := false
-			for j := len(stack) - 1; j >= 0; j-- {
-				if stack[j].marker == m {
-					op := stack[j].pos
-					content := append([]TextNode{}, nodes[op:]...)
-					nodes = nodes[:op]
-					nodes = append(nodes, wrap(m, content))
-					stack = append(stack[:j], stack[j+1:]...)
+			for j := len(stack) - 1; j >= 0; j-- { // start from the top of the stack
+				if stack[j].marker == m { // if a strikethrough or subscript token is found handle appropriately
+					op := stack[j].pos                             // set original pos to current stack position
+					content := append([]TextNode{}, nodes[op:]...) // initialize a slice of nodes from the current position to the top of the stack
+					nodes = nodes[:op]                             // nodes reset to be equal to everything from the bottom of the stack up
+					nodes = append(nodes, wrap(m, content))        // append the content nodes wrapped in the parent delim
+					stack = append(stack[:j], stack[j+1:]...)      // set stack to be equal to everything below this token + all unmatched tokens
 					closed = true
 					break
 				}
 			}
 			if !closed {
-				stack = append(stack, delimRun{marker: m, pos: len(nodes)})
+				stack = append(stack, delimRun{marker: m, pos: len(nodes)}) // if it's not closed, append the entire run to the nodes stack
 			}
 			i++
-		case "]", "(", ")":
-			nodes = append(nodes, TextNode{TextType: Text, Text: t.value})
+		case "]", "(", ")": // closing link/image brackets and parens
+			nodes = append(nodes, TextNode{TextType: Text, Text: t.value}) // treat as plaintext
 			i++
 		default:
 			nodes = append(nodes, TextNode{TextType: Text, Text: t.value})
@@ -120,8 +125,8 @@ func parseInlineStack(tokens []token) []TextNode {
 	}
 
 	for _, op := range stack {
-		nodes = append(nodes, TextNode{TextType: Text, Text: op.marker})
+		nodes = append(nodes, TextNode{TextType: Text, Text: op.marker}) // remaining unclosed delims treated as plaintext
 	}
 
-	return nodes
+	return nodes // return nodes tree
 }
