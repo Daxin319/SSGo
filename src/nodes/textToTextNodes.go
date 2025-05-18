@@ -1,164 +1,212 @@
-// textToTextNodes.go
 package nodes
 
 import (
 	"strings"
 )
 
-// TextToTextNodes converts a markdown string into inline TextNodes.
-func TextToTextNodes(s string) []TextNode {
-	tokens := tokenizeInline(s)
-	nodes, _ := parseTokens(tokens, 0, "")
-	return nodes
-}
-
 type token struct {
-	kind  string // delimiter or "text"
+	kind  string
 	value string
 }
 
+type delimRun struct {
+	marker string
+	pos    int
+}
+
+func TextToTextNodes(s string) []TextNode {
+	toks := tokenizeInline(s)
+	return parseInlineStack(toks)
+}
+
 func tokenizeInline(input string) []token {
-	var tokens []token
-	length := len(input)
-	for i := 0; i < length; {
-		ch := input[i]
-		// code delimiter
-		if ch == '`' {
-			tokens = append(tokens, token{kind: "`", value: "`"})
-			i++
+	var out []token
+	n := len(input)
+	for i := 0; i < n; {
+		r := input[i]
+		if r == '`' {
+			j := i + 1
+			for j < n && input[j] != '`' {
+				j++
+			}
+			if j < n {
+				out = append(out, token{kind: "code", value: input[i+1 : j]})
+				i = j + 1
+			} else {
+				out = append(out, token{kind: "text", value: "`"})
+				i++
+			}
 			continue
 		}
-		// image start
-		if i+1 < length && input[i] == '!' && input[i+1] == '[' {
-			tokens = append(tokens, token{kind: "![", value: "!["})
+		if r == '!' && i+1 < n && input[i+1] == '[' {
+			out = append(out, token{kind: "![", value: "!["})
 			i += 2
 			continue
 		}
-		// link start or bracket
-		if ch == '[' || ch == ']' || ch == '(' || ch == ')' {
-			tokens = append(tokens, token{kind: string(ch), value: string(ch)})
+		if r == '[' || r == ']' || r == '(' || r == ')' {
+			out = append(out, token{kind: string(r), value: string(r)})
 			i++
 			continue
 		}
-		// emphasis / strikethrough / subscript delimiter
-		if ch == '*' || ch == '_' || ch == '~' {
-			runChar := ch
+		if r == '*' || r == '_' || r == '~' {
 			j := i
-			for j < length && input[j] == runChar {
+			for j < n && input[j] == r {
 				j++
 			}
 			runLen := j - i
-			// only '*' and '_' get triple-delimiter
-			if (runChar == '*' || runChar == '_') && runLen >= 3 {
-				tokens = append(tokens, token{
-					kind:  strings.Repeat(string(runChar), 3),
-					value: strings.Repeat(string(runChar), 3),
-				})
+			if (r == '*' || r == '_') && runLen >= 3 {
+				m := strings.Repeat(string(r), 3)
+				out = append(out, token{kind: m, value: m})
 				runLen -= 3
 			}
-			// doubles
-			for runLen >= 2 {
-				tokens = append(tokens, token{
-					kind:  strings.Repeat(string(runChar), 2),
-					value: strings.Repeat(string(runChar), 2),
-				})
+			if runLen >= 2 {
+				m := strings.Repeat(string(r), 2)
+				out = append(out, token{kind: m, value: m})
 				runLen -= 2
 			}
-			// singles
 			if runLen == 1 {
-				tokens = append(tokens, token{kind: string(runChar), value: string(runChar)})
+				m := string(r)
+				out = append(out, token{kind: m, value: m})
 			}
 			i = j
 			continue
 		}
-		// plain text
 		j := i
-		for j < length {
+		for j < n {
 			c := input[j]
-			if c == '`' || c == '!' || c == '[' || c == ']' ||
-				c == '(' || c == ')' || c == '*' || c == '_' || c == '~' {
+			if c == '`' || c == '!' || strings.ContainsAny(string(c), "[]()*_~") {
 				break
 			}
 			j++
 		}
-		tokens = append(tokens, token{kind: "text", value: input[i:j]})
+		if j > i {
+			out = append(out, token{kind: "text", value: input[i:j]})
+		}
 		i = j
 	}
-	return tokens
+	return out
 }
 
-func parseTokens(tokens []token, pos int, delim string) ([]TextNode, int) {
+func parseInlineStack(tokens []token) []TextNode {
 	var nodes []TextNode
-	for i := pos; i < len(tokens); {
-		tok := tokens[i]
-		if delim != "" && tok.kind == delim {
-			return nodes, i
-		}
-		switch tok.kind {
-		case strings.Repeat("~", 2):
-			children, j := parseTokens(tokens, i+1, tok.kind)
-			nodes = append(nodes, TextNode{TextType: Strikethrough, Children: children})
-			i = j + 1
+	var stack []delimRun
 
-		case strings.Repeat("*", 3), strings.Repeat("_", 3):
-			children, j := parseTokens(tokens, i+1, tok.kind)
-			italicNode := TextNode{TextType: Italic, Children: children}
-			nodes = append(nodes, TextNode{TextType: Bold, Children: []TextNode{italicNode}})
-			i = j + 1
-
-		case strings.Repeat("*", 2), strings.Repeat("_", 2):
-			children, j := parseTokens(tokens, i+1, tok.kind)
-			nodes = append(nodes, TextNode{TextType: Bold, Children: children})
-			i = j + 1
-
+	wrap := func(marker string, children []TextNode) TextNode {
+		switch marker {
 		case "*", "_":
-			children, j := parseTokens(tokens, i+1, tok.kind)
-			nodes = append(nodes, TextNode{TextType: Italic, Children: children})
-			i = j + 1
-
+			return TextNode{TextType: Italic, Children: children}
+		case "**", "__":
+			return TextNode{TextType: Bold, Children: children}
+		case "***", "___":
+			return TextNode{TextType: BoldItalic, Children: children}
+		case "~~":
+			return TextNode{TextType: Strikethrough, Children: children}
 		case "~":
-			children, j := parseTokens(tokens, i+1, tok.kind)
-			nodes = append(nodes, TextNode{TextType: Subscript, Children: children})
-			i = j + 1
+			return TextNode{TextType: Subscript, Children: children}
+		}
+		return TextNode{TextType: Text, Text: marker}
+	}
 
-		case "`":
-			var sb strings.Builder
+	processAsterisk := func(m string) {
+		length := len(m)
+		char := m[0]
+		if length <= 2 {
+			for i := len(stack) - 1; i >= 0; i-- {
+				if stack[i].marker == m {
+					op := stack[i].pos
+					content := append([]TextNode{}, nodes[op:]...)
+					nodes = nodes[:op]
+					nodes = append(nodes, wrap(m, content))
+					stack = append(stack[:i], stack[i+1:]...)
+					return
+				}
+			}
+			stack = append(stack, delimRun{marker: m, pos: len(nodes)})
+			return
+		}
+		remaining := length
+		for remaining > 0 {
+			idx := -1
+			for j := len(stack) - 1; j >= 0; j-- {
+				if stack[j].marker[0] == char && len(stack[j].marker) <= remaining {
+					idx = j
+					break
+				}
+			}
+			if idx >= 0 {
+				mrk := stack[idx].marker
+				op := stack[idx].pos
+				content := append([]TextNode{}, nodes[op:]...)
+				nodes = nodes[:op]
+				nodes = append(nodes, wrap(mrk, content))
+				stack = append(stack[:idx], stack[idx+1:]...)
+				remaining -= len(mrk)
+			} else {
+				marker := strings.Repeat(string(char), remaining)
+				stack = append(stack, delimRun{marker: marker, pos: len(nodes)})
+				break
+			}
+		}
+	}
+
+	for i := 0; i < len(tokens); {
+		t := tokens[i]
+		switch t.kind {
+		case "code":
+			nodes = append(nodes, TextNode{TextType: Code, Text: t.value})
+			i++
+		case "![[", "[":
+			isImage := t.kind == "!["
 			j := i + 1
-			for j < len(tokens) && tokens[j].kind != "`" {
-				sb.WriteString(tokens[j].value)
+			for j < len(tokens) && tokens[j].kind != "]" {
 				j++
 			}
-			nodes = append(nodes, TextNode{TextType: Code, Text: sb.String()})
-			if j < len(tokens) && tokens[j].kind == "`" {
-				i = j + 1
-			} else {
-				i = j
-			}
-
-		case "![", "[":
-			isImage := tok.kind == "!["
-			children, j1 := parseTokens(tokens, i+1, "]")
-			var altOrText string
-			for _, c := range children {
-				altOrText += c.Text
-			}
-			if j1+3 < len(tokens) && tokens[j1+1].kind == "(" && tokens[j1+3].kind == ")" {
-				url := tokens[j1+2].value
-				t := Link
+			altNodes := parseInlineStack(tokens[i+1 : j])
+			if j+3 < len(tokens) && tokens[j+1].kind == "(" && tokens[j+3].kind == ")" {
+				url := tokens[j+2].value
+				typeEnum := Link
 				if isImage {
-					t = Image
+					typeEnum = Image
 				}
-				nodes = append(nodes, TextNode{TextType: t, Url: url, Children: children})
-				i = j1 + 4
+				nodes = append(nodes, TextNode{TextType: typeEnum, Url: url, Children: altNodes})
+				i = j + 4
 			} else {
-				nodes = append(nodes, TextNode{TextType: Text, Text: tok.value})
+				nodes = append(nodes, TextNode{TextType: Text, Text: t.value})
 				i++
 			}
-
+		case "*", "**", "***", "_", "__", "___":
+			processAsterisk(t.kind)
+			i++
+		case "~~", "~":
+			m := t.kind
+			closed := false
+			for j := len(stack) - 1; j >= 0; j-- {
+				if stack[j].marker == m {
+					op := stack[j].pos
+					content := append([]TextNode{}, nodes[op:]...)
+					nodes = nodes[:op]
+					nodes = append(nodes, wrap(m, content))
+					stack = append(stack[:j], stack[j+1:]...)
+					closed = true
+					break
+				}
+			}
+			if !closed {
+				stack = append(stack, delimRun{marker: m, pos: len(nodes)})
+			}
+			i++
+		case "]", "(", ")":
+			nodes = append(nodes, TextNode{TextType: Text, Text: t.value})
+			i++
 		default:
-			nodes = append(nodes, TextNode{TextType: Text, Text: tok.value})
+			nodes = append(nodes, TextNode{TextType: Text, Text: t.value})
 			i++
 		}
 	}
-	return nodes, len(tokens)
+
+	for _, op := range stack {
+		nodes = append(nodes, TextNode{TextType: Text, Text: op.marker})
+	}
+
+	return nodes
 }
