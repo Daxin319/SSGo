@@ -70,7 +70,7 @@ func parseInlineStack(tokens []token) []TextNode {
 		case "code":
 			nodes = append(nodes, TextNode{TextType: Code, Text: t.value})
 			i++
-		case "![[", "[":
+		case "![", "[":
 			isImage := t.kind == "!["
 			j := i + 1
 			for j < len(tokens) && tokens[j].kind != "]" {
