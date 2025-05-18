@@ -25,8 +25,8 @@ func textNodeToHTMLNodeInternal(n TextNode, depth int) TextNode {
 		n.Text = ""
 
 	case BoldItalic:
-		em := TextNode{Tag: "i", Children: mapToHTMLChildren(n.Children, depth+1)}
-		n.Tag = "b"
+		em := TextNode{Tag: "em", Children: mapToHTMLChildren(n.Children, depth+1)}
+		n.Tag = "strong"
 		n.Children = []TextNode{em}
 		n.Text = ""
 
