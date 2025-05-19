@@ -40,6 +40,8 @@ Time to test ^superscript text^ and also test ^formatting ~~***inside the***~~ s
 
 Testing \*escaped asterisks\*, \_escaped underscores\_, \`escaped _**code**_ span\`, \~escaped tilde\~, \^escaped carets\^
 
+Can I get ==Highlighted Text== to work as well? What about ==Higlighted **_and formatted_ text**==?
+
 Correctly nested:
 
 - **Bold _with italic inside_**

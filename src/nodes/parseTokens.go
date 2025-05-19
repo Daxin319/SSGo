@@ -25,6 +25,8 @@ func parseInlineStack(tokens []token) []TextNode {
 			return TextNode{TextType: Subscript, Children: children}
 		case "^":
 			return TextNode{TextType: Superscript, Children: children}
+		case "==":
+			return TextNode{TextType: Highlight, Children: children}
 		}
 		return TextNode{TextType: Text, Text: marker}
 	}
@@ -96,7 +98,7 @@ func parseInlineStack(tokens []token) []TextNode {
 				nodes = append(nodes, TextNode{TextType: Text, Text: t.value}) // otherwise treat it as plaintext
 				i++                                                            // move forward one token
 			}
-		case "*", "**", "***", "_", "__", "___":
+		case "*", "**", "***", "_", "__", "___", "==":
 			processAsterisk(t.kind) // handle this bullshit
 			i++                     // next token
 		case "~~", "~", "^": // strikethrough or subscript or superscript

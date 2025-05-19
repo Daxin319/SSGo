@@ -55,7 +55,7 @@ func tokenizeInline(input string) []token {
 			continue
 		}
 
-		if r == '*' || r == '_' || r == '~' || r == '^' { // all other delimiters, some are single and some can repeat
+		if r == '*' || r == '_' || r == '~' || r == '^' || r == '=' { // all other delimiters, some are single and some can repeat
 			j := i
 			for j < n && runes[j] == r {
 				j++ // as long as we find the same rune keep going
@@ -66,7 +66,7 @@ func tokenizeInline(input string) []token {
 				out = append(out, token{kind: m, value: m}) // create token and append
 				runLen -= 3                                 // subtract three from run length
 			}
-			if runLen >= 2 && r != '^' { // double for bold/strikethrough/subscript
+			if runLen >= 2 && r != '^' { // double for bold/strikethrough/highlight
 				m := strings.Repeat(string(r), 2)
 				out = append(out, token{kind: m, value: m}) // create token and append
 				runLen -= 2                                 // subtract two from run length
@@ -81,8 +81,8 @@ func tokenizeInline(input string) []token {
 
 		j := i      // set current position to first non-delimiter rune
 		for j < n { // as long as it's not the end of the string
-			c := runes[j]                                                                        // current rune
-			if c == '\\' || c == '`' || c == '!' || strings.ContainsAny(string(c), "[]()*_~^") { // delimiter?
+			c := runes[j]                                                                         // current rune
+			if c == '\\' || c == '`' || c == '!' || strings.ContainsAny(string(c), "[]()*_~^=") { // delimiter?
 				break // yes, stop
 			}
 			j++ // advance one rune

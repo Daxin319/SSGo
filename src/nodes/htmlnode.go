@@ -18,6 +18,7 @@ const (
 	Strikethrough
 	Subscript
 	Superscript
+	Highlight
 )
 
 type TextNode struct {
@@ -110,6 +111,8 @@ func String(t enum) string {
 		return "image"
 	case BoldItalic:
 		return "bolditalic"
+	case Highlight:
+		return "highlight"
 	default:
 		return "unknown text type"
 	}

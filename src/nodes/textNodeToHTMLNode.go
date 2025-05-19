@@ -45,6 +45,11 @@ func textNodeToHTMLNodeInternal(n TextNode, depth int) TextNode { // convert a s
 		n.Children = mapToHTMLChildren(n.Children, depth+1)
 		n.Text = ""
 
+	case Highlight:
+		n.Tag = "mark"
+		n.Children = mapToHTMLChildren(n.Children, depth+1)
+		n.Text = ""
+
 	case Code:
 		n.Tag = "code"
 		var content string

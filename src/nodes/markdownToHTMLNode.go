@@ -32,7 +32,6 @@ func MarkdownToHTMLNode(s string) TextNode {
 			bNodes = append(bNodes, node)
 
 		case blocks.Paragraph:
-			fmt.Println(">>> Paragraph block")
 			cleaned := CleanNewlines(blck)
 			children := TextToChildren(cleaned)
 			node = TextNode{
