@@ -1,6 +1,9 @@
 package nodes
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type enum int
 
@@ -30,6 +33,13 @@ type TextNode struct {
 type HTMLNode interface {
 	PropsToHTML() string
 	ToHTML() string
+}
+
+func escapeHTML(s string) string {
+	s = strings.ReplaceAll(s, "&", "&amp;")
+	s = strings.ReplaceAll(s, "<", "&lt;")
+	s = strings.ReplaceAll(s, ">", "&gt;")
+	return s
 }
 
 func (h *TextNode) PropsToHTML() string {
@@ -64,9 +74,9 @@ func (h *TextNode) ToHTML() string { // convert node to html string
 	default:
 		if len(h.Children) == 0 { // otherwise, if there are no children check for properties, if there are no properties return as is
 			if len(h.Props) == 0 {
-				return fmt.Sprintf("<%s>%s</%s>", h.Tag, h.Text, h.Tag)
+				return fmt.Sprintf("<%s>%s</%s>", h.Tag, escapeHTML(h.Text), h.Tag)
 			}
-			return fmt.Sprintf("<%s%s>%s</%s>", h.Tag, h.PropsToHTML(), h.Text, h.Tag)
+			return fmt.Sprintf("<%s%s>%s</%s>", h.Tag, h.PropsToHTML(), escapeHTML(h.Text), h.Tag)
 		}
 		for _, c := range h.Children { // if there are children convert to html and append to string
 			cString += c.ToHTML()

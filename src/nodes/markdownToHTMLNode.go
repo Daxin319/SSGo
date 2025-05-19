@@ -1,12 +1,18 @@
 package nodes
 
 import (
+	"fmt"
 	"main/src/blocks"
 	"strconv"
 	"strings"
 )
 
 func MarkdownToHTMLNode(s string) TextNode {
+	fmt.Println("RAW BYTES:")
+	for i, r := range s {
+		fmt.Printf("%02d: %q (%[2]U)\n", i, r)
+	}
+
 	var node TextNode
 	blcks := blocks.MarkdownToBlocks(s)
 	bNodes := []TextNode{}
@@ -26,6 +32,7 @@ func MarkdownToHTMLNode(s string) TextNode {
 			bNodes = append(bNodes, node)
 
 		case blocks.Paragraph:
+			fmt.Println(">>> Paragraph block")
 			cleaned := CleanNewlines(blck)
 			children := TextToChildren(cleaned)
 			node = TextNode{

@@ -38,6 +38,8 @@ Normal text next to ~subscript text~ for scale, Normal text next to ~subscript w
 
 Time to test ^superscript text^ and also test ^formatting ~~***inside the***~~ superscript^, 2^14^ karma gets you in the arcanum.
 
+Testing \*escaped asterisks\*, \_escaped underscores\_, \`escaped _**code**_ span\`, \~escaped tilde\~, \^escaped carets\^
+
 Correctly nested:
 
 - **Bold _with italic inside_**

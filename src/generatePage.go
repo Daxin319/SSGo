@@ -18,6 +18,7 @@ func GeneratePage(fromPath, destPath, templatePath, basePath string) {
 	if err != nil {
 		fmt.Println("error reading data from fromPath")
 	}
+	fmt.Printf("%q\n", readSrc)
 	temp, err := os.Open(templatePath)
 	if err != nil {
 		fmt.Println("error opening templatePath file")
