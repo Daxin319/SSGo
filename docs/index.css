@@ -100,6 +100,11 @@ img {
   box-shadow: 3px 3px 6px #000;
 }
 
+mark {
+  color: #000000;
+  background-color: #e9c46a;
+}
+
 ::-webkit-scrollbar {
   width: 12px;
   height: 12px;
