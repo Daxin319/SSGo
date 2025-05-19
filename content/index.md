@@ -10,9 +10,9 @@
 
 ###### H6 Heading
 
-####### Treated as H6 by the generator
+####### More than 6 `#` chars are treated as H6 headers and assumed to be user error
 
-######## Also treated as H6
+######## Also treated as H6, it has 8 of them.
 
 ---
 
