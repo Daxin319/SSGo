@@ -9,6 +9,9 @@ const punct = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 type token struct {
 	kind  string // delimiter type or "text"
 	value string // raw text
+	file  string
+	line  int
+	col   int
 }
 
 func tokenizeInline(input string) []token {
@@ -20,6 +23,9 @@ func tokenizeInline(input string) []token {
 			if i+1 < n && strings.ContainsRune(punct, runes[i+1]) {
 				out = append(out, token{kind: "text", value: string(runes[i+1])}) // emit escapable rune literal
 				i += 2                                                            // advance past the escaped character
+			} else if i+1 == n {
+				out = append(out, token{kind: "text", value: "<br />"})
+				i += 6
 			} else {
 				out = append(out, token{kind: "text", value: "\\"}) // emit \ literal
 				i++

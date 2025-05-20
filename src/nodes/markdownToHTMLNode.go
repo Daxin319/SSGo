@@ -7,7 +7,8 @@ import (
 	"strings"
 )
 
-func MarkdownToHTMLNode(s string) TextNode {
+func MarkdownToHTMLNode(input string) TextNode {
+	s := sanitizeNulls(input)
 	fmt.Println("RAW BYTES:")
 	for i, r := range s {
 		fmt.Printf("%02d: %q (%[2]U)\n", i, r)
