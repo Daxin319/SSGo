@@ -2,53 +2,66 @@ package nodes
 
 import (
 	"fmt"
-	"main/src/blocks"
+	"regexp"
 	"strconv"
 	"strings"
 )
 
+var reg = regexp.MustCompile(`\\[ \t]*\n`)
+
 func MarkdownToHTMLNode(input string) TextNode {
-	s := sanitizeNulls(input)
+	lBreaks := reg.ReplaceAllString(input, "<br />\n")
+	s := SanitizeNulls(lBreaks)
 	fmt.Println("RAW BYTES:")
 	for i, r := range s {
 		fmt.Printf("%02d: %q (%[2]U)\n", i, r)
 	}
 
 	var node TextNode
-	blcks := blocks.MarkdownToBlocks(s)
+	blcks := MarkdownToBlocks(s)
 	bNodes := []TextNode{}
 
 	for _, blck := range blcks {
-		bType := blocks.BlockToBlockType(blck)
+		bType := BlockToBlockType(blck)
 
 		switch bType {
-		case blocks.Heading:
+		case Heading:
 			trimmed := strings.TrimLeft(blck, "# ")
-			n, _ := blocks.HeaderNum(blck)
+			n, _ := HeaderNum(blck)
 			children := TextToChildren(trimmed)
 			node = TextNode{
 				Tag:      "h" + strconv.Itoa(n),
-				Children: mapToHTMLChildren(children, 0),
+				Children: MapToHTMLChildren(children, 0),
 			}
 			bNodes = append(bNodes, node)
 
-		case blocks.Paragraph:
+		case Paragraph:
 			cleaned := CleanNewlines(blck)
 			children := TextToChildren(cleaned)
 			node = TextNode{
 				Tag:      "p",
-				Children: mapToHTMLChildren(children, 0),
+				Children: MapToHTMLChildren(children, 0),
 			}
 			bNodes = append(bNodes, node)
 
-		case blocks.Code:
-			if !strings.HasSuffix(blck, "\n") {
-				blck += "\n"
+		case CodeBlock:
+			lines := strings.Split(blck, "\n")
+			info := ""
+			if len(lines[0]) > 3 {
+				info = strings.Split(lines[0][3:], " ")[0] // first word after ``` with no space
 			}
-			content := strings.TrimLeft(strings.TrimSuffix(blck, "```\n"), "`\n")
+			body := ""
+			if len(lines) > 2 {
+				raw := strings.Join(lines[1:len(lines)-1], "\n")
+				body = UnescapeString(raw)
+			}
 			codeNode := TextNode{
 				Tag:      "code",
-				Children: []TextNode{{Text: content, TextType: Text}},
+				Props:    make(map[string]string),
+				Children: []TextNode{{Text: body, TextType: Text}},
+			}
+			if info != "" {
+				codeNode.Props["class"] = fmt.Sprintf("language-%s", info)
 			}
 			node = TextNode{
 				Tag:      "pre",
@@ -56,16 +69,16 @@ func MarkdownToHTMLNode(input string) TextNode {
 			}
 			bNodes = append(bNodes, node)
 
-		case blocks.Quote:
+		case Quote:
 			joined := CleanQuotes(blck)
 			children := TextToChildren(joined)
 			node = TextNode{
 				Tag:      "blockquote",
-				Children: mapToHTMLChildren(children, 0),
+				Children: MapToHTMLChildren(children, 0),
 			}
 			bNodes = append(bNodes, node)
 
-		case blocks.UnorderedList:
+		case UnorderedList:
 			children := CleanLists(blck)
 			node = TextNode{
 				Tag:      "ul",
@@ -73,7 +86,7 @@ func MarkdownToHTMLNode(input string) TextNode {
 			}
 			bNodes = append(bNodes, node)
 
-		case blocks.OrderedList:
+		case OrderedList:
 			children := CleanLists(blck)
 			node = TextNode{
 				Tag:      "ol",

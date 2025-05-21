@@ -6,7 +6,7 @@ import (
 
 func CleanLists(block string) []TextNode {
 	lines := strings.Split(block, "\n")
-	var nodes []TextNode
+	var newNodes []TextNode
 
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line) // trim whitespace and skip if empty after trimming
@@ -16,15 +16,15 @@ func CleanLists(block string) []TextNode {
 
 		content := stripListMarker(trimmed) // strip list markers, convert to child nodes, map HTML and append to nodes slice to be returned
 		children := TextToChildren(content)
-		children = mapToHTMLChildren(children, 0)
+		children = MapToHTMLChildren(children, 0)
 
-		nodes = append(nodes, TextNode{
+		newNodes = append(newNodes, TextNode{
 			Tag:      "li",
 			Children: children,
 		})
 	}
 
-	return nodes
+	return newNodes
 }
 
 // FIX THIS. CAUSING PROBLEMS FOR LONG ORDERED LISTS

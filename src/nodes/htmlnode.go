@@ -71,7 +71,7 @@ func (h *TextNode) ToHTML() string { // convert node to html string
 		}
 		return h.Text
 	case "img": // images are a special case
-		return fmt.Sprintf("<%s%s/>", h.Tag, h.PropsToHTML())
+		return fmt.Sprintf("<%s%s/>", h.Tag, UnescapeString(h.PropsToHTML()))
 	default:
 		if len(h.Children) == 0 { // otherwise, if there are no children check for properties, if there are no properties return as is
 			if len(h.Props) == 0 {

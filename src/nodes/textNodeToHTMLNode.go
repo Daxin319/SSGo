@@ -1,6 +1,6 @@
 package nodes
 
-func mapToHTMLChildren(children []TextNode, depth int) []TextNode { // iterate through children to convert to htmlnodes
+func MapToHTMLChildren(children []TextNode, depth int) []TextNode { // iterate through children to convert to htmlnodes
 	out := make([]TextNode, 0, len(children))
 	for _, c := range children {
 		out = append(out, textNodeToHTMLNodeInternal(c, depth+1))
@@ -16,38 +16,38 @@ func textNodeToHTMLNodeInternal(n TextNode, depth int) TextNode { // convert a s
 	switch n.TextType {
 	case Strikethrough:
 		n.Tag = "s"
-		n.Children = mapToHTMLChildren(n.Children, depth+1)
+		n.Children = MapToHTMLChildren(n.Children, depth+1)
 		n.Text = ""
 
 	case Subscript:
 		n.Tag = "sub"
-		n.Children = mapToHTMLChildren(n.Children, depth+1)
+		n.Children = MapToHTMLChildren(n.Children, depth+1)
 		n.Text = ""
 
 	case Superscript:
 		n.Tag = "sup"
-		n.Children = mapToHTMLChildren(n.Children, depth+1)
+		n.Children = MapToHTMLChildren(n.Children, depth+1)
 		n.Text = ""
 
 	case BoldItalic:
-		em := TextNode{Tag: "em", Children: mapToHTMLChildren(n.Children, depth+1)}
+		em := TextNode{Tag: "em", Children: MapToHTMLChildren(n.Children, depth+1)}
 		n.Tag = "strong"
 		n.Children = []TextNode{em}
 		n.Text = ""
 
 	case Bold:
 		n.Tag = "strong"
-		n.Children = mapToHTMLChildren(n.Children, depth+1)
+		n.Children = MapToHTMLChildren(n.Children, depth+1)
 		n.Text = ""
 
 	case Italic:
 		n.Tag = "em"
-		n.Children = mapToHTMLChildren(n.Children, depth+1)
+		n.Children = MapToHTMLChildren(n.Children, depth+1)
 		n.Text = ""
 
 	case Highlight:
 		n.Tag = "mark"
-		n.Children = mapToHTMLChildren(n.Children, depth+1)
+		n.Children = MapToHTMLChildren(n.Children, depth+1)
 		n.Text = ""
 
 	case Code:
@@ -68,7 +68,7 @@ func textNodeToHTMLNodeInternal(n TextNode, depth int) TextNode { // convert a s
 			n.Props = make(map[string]string)
 		}
 		n.Props["href"] = n.Url
-		n.Children = mapToHTMLChildren(n.Children, depth+1)
+		n.Children = MapToHTMLChildren(n.Children, depth+1)
 		n.Text = ""
 
 	case Image:
@@ -86,7 +86,7 @@ func textNodeToHTMLNodeInternal(n TextNode, depth int) TextNode { // convert a s
 		n.Text = ""
 
 	default:
-		n.Children = mapToHTMLChildren(n.Children, depth+1)
+		n.Children = MapToHTMLChildren(n.Children, depth+1)
 	}
 	return n
 }

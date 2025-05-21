@@ -1,4 +1,4 @@
-package blocks
+package nodes
 
 import (
 	"regexp"
@@ -11,7 +11,7 @@ type BlockType int
 const (
 	Paragraph BlockType = iota
 	Heading
-	Code
+	CodeBlock
 	Quote
 	UnorderedList
 	OrderedList
@@ -28,7 +28,7 @@ func BlockToBlockType(block string) BlockType {
 		return Heading
 	}
 	if len(trimmed) >= 6 && trimmed[:3] == "```" && trimmed[len(trimmed)-3:] == "```" {
-		return Code
+		return CodeBlock
 	}
 	if len(trimmed) >= 2 && trimmed[:2] == "> " {
 		return Quote

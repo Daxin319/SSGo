@@ -1,4 +1,4 @@
-package blocks
+package nodes
 
 import (
 	"strings"

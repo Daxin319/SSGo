@@ -28,7 +28,7 @@ func GeneratePage(fromPath, destPath, templatePath, basePath string) {
 		fmt.Println("error reading data from templatePath")
 	}
 
-	title, content, err := ExtractTitle(string(readSrc))
+	title, content, err := nodes.ExtractTitle(string(readSrc))
 
 	var cString string
 	node := nodes.MarkdownToHTMLNode(content)

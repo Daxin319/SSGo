@@ -1,23 +1,22 @@
-package main
+package nodes
 
 import (
 	"errors"
-	"main/src/blocks"
 	"strings"
 )
 
 func ExtractTitle(s string) (string, string, error) {
-	blcks := blocks.MarkdownToBlocks(s)
+	blcks := MarkdownToBlocks(s)
 	var fixed []string
 	var title string
 	count := 0
 
 	for _, blck := range blcks {
-		bType := blocks.BlockToBlockType(blck)
-		if bType != blocks.Heading {
+		bType := BlockToBlockType(blck)
+		if bType != Heading {
 			fixed = append(fixed, blck)
 		} else {
-			n, _ := blocks.HeaderNum(blck)
+			n, _ := HeaderNum(blck)
 			if n != 1 {
 				fixed = append(fixed, blck)
 			} else {
