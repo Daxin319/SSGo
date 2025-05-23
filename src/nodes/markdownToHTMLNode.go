@@ -46,22 +46,15 @@ func MarkdownToHTMLNode(input string) TextNode {
 
 		case CodeBlock:
 			lines := strings.Split(blck, "\n")
-			info := ""
-			if len(lines[0]) > 3 {
-				info = strings.Split(lines[0][3:], " ")[0] // first word after ``` with no space
-			}
 			body := ""
 			if len(lines) > 2 {
 				raw := strings.Join(lines[1:len(lines)-1], "\n")
-				body = UnescapeString(raw)
+				body = UnescapeString(UnescapeString(raw))
 			}
 			codeNode := TextNode{
 				Tag:      "code",
 				Props:    make(map[string]string),
 				Children: []TextNode{{Text: body, TextType: Text}},
-			}
-			if info != "" {
-				codeNode.Props["class"] = fmt.Sprintf("language-%s", info)
 			}
 			node = TextNode{
 				Tag:      "pre",
