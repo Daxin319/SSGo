@@ -25,6 +25,13 @@ func MarkdownToHTMLNode(input string) TextNode {
 		bType := BlockToBlockType(blck)
 
 		switch bType {
+		case ThematicBreak:
+			node = TextNode{
+				Tag:   "hr",
+				Props: make(map[string]string),
+			}
+			bNodes = append(bNodes, node)
+
 		case Heading:
 			trimmed := strings.TrimLeft(blck, "# ")
 			n, _ := HeaderNum(blck)

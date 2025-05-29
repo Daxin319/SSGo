@@ -9,9 +9,9 @@ const punct = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 type Token struct {
 	kind  string // delimiter type or "text"
 	value string // raw text
-	file  string
-	line  int
-	col   int
+	// file  string
+	// line  int    -> uncomment when ready to add this to diagnostics
+	// col   int
 }
 
 func TokenizeInline(input string) []Token {

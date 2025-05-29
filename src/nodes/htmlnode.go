@@ -46,46 +46,51 @@ func escapeHTML(s string) string {
 func (h *TextNode) PropsToHTML() string {
 	var finalString string
 	for key := range h.Props {
-		s := fmt.Sprintf(` %s="%s"`, key, h.Props[key]) // convert props to html with appropriate whitespace
+		s := fmt.Sprintf(` %s="%s"`, key, h.Props[key])
 		finalString += s
 	}
 	return finalString
 }
 
-func (h *TextNode) Repr() string { // this was honestly only here for testing, fuck it
+func (h *TextNode) Repr() string {
 	if h.Tag != "" {
 		return fmt.Sprintf("HTMLNode(%s, %s, %v, %v)", h.Tag, h.Value, h.Children, h.Props)
 	}
 	return fmt.Sprintf("TextNode(%s, %s, %s)", h.Text, String(h.TextType), h.Url)
 }
 
-func (h *TextNode) ToHTML() string { // convert node to html string
+func (h *TextNode) ToHTML() string {
 	var cString string
-	switch h.Tag { // switch on tag
-	case "": // no tag means it's likely plaintext or a wrapper node
+	switch h.Tag {
+	case "":
 		if len(h.Children) > 0 {
-			for _, c := range h.Children { // if there are child nodes convert them to HTML and return the final string
+			for _, c := range h.Children {
 				cString += c.ToHTML()
 			}
 			return cString
 		}
 		return h.Text
-	case "img": // images are a special case
+
+	case "img":
 		return fmt.Sprintf("<%s%s/>", h.Tag, UnescapeString(h.PropsToHTML()))
+
+	case "hr":
+		return "<hr />"
+
 	default:
-		if len(h.Children) == 0 { // otherwise, if there are no children check for properties, if there are no properties return as is
+		if len(h.Children) == 0 {
 			if len(h.Props) == 0 {
 				return fmt.Sprintf("<%s>%s</%s>", h.Tag, escapeHTML(h.Text), h.Tag)
 			}
 			return fmt.Sprintf("<%s%s>%s</%s>", h.Tag, h.PropsToHTML(), escapeHTML(h.Text), h.Tag)
 		}
-		for _, c := range h.Children { // if there are children convert to html and append to string
+		for _, c := range h.Children {
 			cString += c.ToHTML()
 		}
 		if len(h.Props) == 0 {
-			return fmt.Sprintf("<%s>%s</%s>", h.Tag, cString, h.Tag) // if there are no properties then append in standard structure
+			return fmt.Sprintf("<%s>%s</%s>", h.Tag, cString, h.Tag)
 		}
-		return fmt.Sprintf("<%s%s>%s</%s>", h.Tag, h.PropsToHTML(), cString, h.Tag) // if there are properties convert them to html and return formatted string
+		return fmt.Sprintf("<%s%s>%s</%s>", h.Tag, h.PropsToHTML(), cString, h.Tag)
 	}
 }
 

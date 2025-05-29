@@ -15,10 +15,15 @@ const (
 	Quote
 	UnorderedList
 	OrderedList
+	ThematicBreak
 )
 
 func BlockToBlockType(block string) BlockType {
 	trimmed := strings.TrimLeft(strings.TrimRight(block, " \n"), " \n")
+
+	if isThematicBreak(trimmed) {
+		return ThematicBreak
+	}
 
 	if len(trimmed) >= 1 && trimmed[0] == '#' {
 		n, i := HeaderNum(trimmed)
@@ -46,11 +51,17 @@ func BlockToBlockType(block string) BlockType {
 // Helper funcs for BlockToBlockType //
 ///////////////////////////////////////
 
+// hrRe matches up to three leading spaces, then three or more of the same -, _, or *, with optional spaces/tabs between them
+var hrRe = regexp.MustCompile(`^[ ]{0,3}(?:-(?:[ \t]*-){2,}|_(?:[ \t]*_){2,}|\*(?:[ \t]*\*){2,})[ \t]*$`)
+
+func isThematicBreak(line string) bool {
+	return hrRe.MatchString(line)
+}
+
 var re = regexp.MustCompile(`^\d+\. `)
 
 func isOrderedList(block string) bool {
 	split := strings.Split(block, "\n")
-
 	expected := 1
 	for _, line := range split {
 		trimmed := strings.TrimLeft(line, " ")
@@ -59,7 +70,6 @@ func isOrderedList(block string) bool {
 			return false
 		}
 		trim := strings.TrimRight(match[0], ". ")
-
 		n, err := strconv.Atoi(trim)
 		if err != nil || n != expected {
 			return false

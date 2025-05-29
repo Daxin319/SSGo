@@ -27,7 +27,6 @@ func CleanLists(block string) []TextNode {
 	return newNodes
 }
 
-// FIX THIS. CAUSING PROBLEMS FOR LONG ORDERED LISTS
 func stripListMarker(line string) string {
 	if strings.HasPrefix(line, "- ") || strings.HasPrefix(line, "* ") {
 		return line[2:]
