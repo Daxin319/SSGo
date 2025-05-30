@@ -19,32 +19,67 @@ func TokenizeInline(input string) []Token {
 	runes := []rune(input)
 	n := len(runes)
 	for i := 0; i < n; {
-		if runes[i] == '\\' {
+
+		r := runes[i] // set and check rune, create Token depending on what we found
+		if r == '`' {
+			// count opening ticks
+			j := i
+			for j < n && runes[j] == '`' {
+				j++
+			}
+			delimLen := j - i
+
+			// scan for a matching run of exactly delimLen backticks
+			k := j
+			for {
+				// find next backtick
+				for k < n && runes[k] != '`' {
+					k++
+				}
+				if k >= n {
+					break
+				}
+				// count ticks at k
+				l := k
+				for l < n && runes[l] == '`' {
+					l++
+				}
+				if l-k == delimLen {
+					// **skip** if this run is escaped (preceded by a backslash)
+					if k > 0 && runes[k-1] == '\\' {
+						k = l
+						continue
+					}
+					// found closer—capture literal content
+					content := string(runes[j:k])
+					// trim a single leading/trailing space per spec
+					if len(content) > 1 && content[0] == ' ' && content[len(content)-1] == ' ' {
+						content = content[1 : len(content)-1]
+					}
+					out = append(out, Token{kind: "code", value: content})
+					i = l
+					goto nextToken
+				}
+				k = l
+			}
+
+			// no closer: emit each backtick literally
+			for range delimLen {
+				out = append(out, Token{kind: "text", value: "`"})
+			}
+			i = j
+			continue
+
+		nextToken:
+			continue
+		}
+
+		if r == '\\' {
 			if i+1 < n && strings.ContainsRune(punct, runes[i+1]) {
 				out = append(out, Token{kind: "text", value: string(runes[i+1])})
 				i += 2
 				continue
 			}
-		}
-
-		r := runes[i] // set and check rune, create Token depending on what we found
-		if r == '`' { // inline code
-			j := i + 1 // variable for following rune
-			for j < n && runes[j] != '`' {
-				if runes[j] != '\\' {
-					j++
-				} else {
-					j += 2
-				}
-			}
-			if j < n {
-				out = append(out, Token{kind: "code", value: string(runes[i+1 : j])}) // create code Token and append
-				i = j + 1                                                             // advance to next rune
-			} else {
-				out = append(out, Token{kind: "text", value: "`"}) // default to plaintext
-				i++                                                // advance one rune
-			}
-			continue
 		}
 
 		if i+1 < n && runes[i] == '=' && runes[i+1] == '=' { //highlight
