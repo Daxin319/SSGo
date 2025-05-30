@@ -1,10 +1,10 @@
 # SSGo, a Static Site Generator written in Go
 
-Currently offering basic markdown support, this can take markdown as input and will output HTML formatted to be either served to localhost:3000 for testing or to be uploaded to a domain host like gitpages.
+Currently offering approximately 70% Commonmark support plus some extended markdown syntax, this can take markdown as input and will output HTML formatted to be either served to localhost:3000 for testing or to be uploaded to a domain host like gitpages.
 
-I decided to start this project because I decided to change careers and get into programming. I had written a version of this in Python3 earlier in my learning, so I decided to rewrite it in Go without using a guide to see how far I've come and to provide me with a way to show off my skill I've learned. What better way to show you know what you're doing than to make your [professional blog/information page](https://daxin319.github.io/SSGo/) (Currently WIP) something that was generated from a program that you wrote yourself?
+I decided to start this project because I decided to change careers and get into programming. I had written a version of this in Python3 earlier in my learning, so I decided to rewrite it in Go without using a guide to see how far I've come and to provide me with a way to show off my skill I've learned. I've got the output of my test file [here](https://daxin319.github.io/SSGo/) (Feel free to compare to the `index.md` file in the `content` directory to see the raw markdown). Also present on the output page is some documentation on differences between Commonmark standard and my quality of life changes as well as supported extended markdown.
 
-It's rather basic at the moment, but I'm working on adding full commonmark support at this time. If you wish to use it yourself, it's quite simple, just check the Quick Start Section Below.
+I'm working on adding full Commonmark support at this time. If you wish to use it yourself, it's quite simple, just check the Quick Start Section Below.
 
 Big shout out to [boot.dev](https://www.boot.dev?bannerlord=daxin319) for helping me learn to program, and for not being mad that I stole your markdown files to test the basic functions before I started expanding features.
 
