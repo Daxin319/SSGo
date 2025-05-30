@@ -32,8 +32,13 @@ func BlockToBlockType(block string) BlockType {
 		}
 		return Heading
 	}
-	if len(trimmed) >= 6 && trimmed[:3] == "```" && trimmed[len(trimmed)-3:] == "```" {
-		return CodeBlock
+	if len(trimmed) >= 6 {
+		if trimmed[:3] == "```" && trimmed[len(trimmed)-3:] == "```" {
+			return CodeBlock
+		}
+		if trimmed[:3] == "~~~" && trimmed[len(trimmed)-3:] == "~~~" {
+			return CodeBlock
+		}
 	}
 	if len(trimmed) >= 2 && trimmed[:2] == "> " {
 		return Quote
