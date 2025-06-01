@@ -1,13 +1,15 @@
-package main
+package fileio
 
 import (
 	"fmt"
-	"main/src/nodes"
 	"os"
 	"strings"
+
+	"github.com/Daxin319/SSGo/src/blocks"
+	"github.com/Daxin319/SSGo/src/renderer/html"
 )
 
-func GeneratePage(fromPath, destPath, templatePath, basePath string) {
+func generatePage(fromPath, destPath, templatePath, basePath string) {
 	fmt.Printf("Generating page from %s to %s using template at %s\n", fromPath, destPath, templatePath)
 
 	src, err := os.Open(fromPath)
@@ -28,10 +30,10 @@ func GeneratePage(fromPath, destPath, templatePath, basePath string) {
 		fmt.Println("error reading data from templatePath")
 	}
 
-	title, content, err := nodes.ExtractTitle(string(readSrc))
+	title, content, err := blocks.ExtractTitle(string(readSrc))
 
 	var cString string
-	node := nodes.MarkdownToHTMLNode(content)
+	node := html.MarkdownToHTMLNode(content)
 
 	cString += node.ToHTML()
 

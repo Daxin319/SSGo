@@ -1,8 +1,10 @@
-package nodes
+package blocks
 
 import (
 	"regexp"
 	"strings"
+
+	"github.com/Daxin319/SSGo/src/nodes"
 )
 
 var refDefs = map[string]struct{ URL, Title string }{}
@@ -14,8 +16,8 @@ func extractRefDefs(lines []string) []string {
 	var out []string
 	for _, line := range lines {
 		if m := defRe.FindStringSubmatch(line); m != nil {
-			label := strings.ToLower(UnescapeString(m[1]))
-			url := UnescapeString(m[2])
+			label := strings.ToLower(nodes.UnescapeString(m[1]))
+			url := nodes.UnescapeString(m[2])
 			title := ""
 			if len(m) >= 4 {
 				title = m[3]
