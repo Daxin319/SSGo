@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+
+	"github.com/Daxin319/SSGo/src/fileio"
 )
 
 func main() {
@@ -19,13 +21,13 @@ func main() {
 		fmt.Println("error getting working directory")
 	}
 
-	err = CopyStaticToDocs(path)
+	err = fileio.CopyStaticToDocs(path)
 	if err != nil {
 		msg := fmt.Errorf("Error copying files: %v", err)
 		fmt.Println(msg)
 	}
 
-	GeneratePagesRecursive(path+"/content", path+"/docs", path+"/template.html", basePath)
+	fileio.GeneratePagesRecursive(path+"/content", path+"/docs", path+"/template.html", basePath)
 
 	if len(os.Args) > 1 && os.Args[1] == "serve" {
 		http.Handle("/", http.FileServer(http.Dir("./docs")))

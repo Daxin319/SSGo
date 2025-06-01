@@ -1,4 +1,4 @@
-package main
+package fileio
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ func GeneratePagesRecursive(fromDirPath, destDirPath, templatePath, basePath str
 			}
 			GeneratePagesRecursive(fromDirPath+"/"+entry.Name(), destDirPath+"/"+entry.Name(), templatePath, basePath)
 		} else {
-			GeneratePage(fromDirPath+"/"+entry.Name(), destDirPath+"/"+strings.TrimRight(entry.Name(), ".md")+".html", templatePath, basePath)
+			generatePage(fromDirPath+"/"+entry.Name(), destDirPath+"/"+strings.TrimRight(entry.Name(), ".md")+".html", templatePath, basePath)
 		}
 	}
 }
