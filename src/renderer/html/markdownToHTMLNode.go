@@ -60,7 +60,7 @@ func MarkdownToHTMLNode(input string) nodes.TextNode {
 			body := ""
 			if len(lines) > 2 {
 				raw := strings.Join(lines[1:len(lines)-1], "\n")
-				body = nodes.UnescapeString(nodes.UnescapeString(raw))
+				body = nodes.UnescapeString(raw)
 			}
 			codeNode := nodes.TextNode{
 				Tag:      "code",
