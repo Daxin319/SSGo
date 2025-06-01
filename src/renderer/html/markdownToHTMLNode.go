@@ -29,7 +29,6 @@ func MarkdownToHTMLNode(input string) nodes.TextNode {
 		bType := blocks.BlockToBlockType(blck)
 
 		switch bType {
-<<<<<<< HEAD
 		case blocks.ThematicBreak:
 			node = nodes.TextNode{
 				Tag:   "hr",
@@ -37,8 +36,6 @@ func MarkdownToHTMLNode(input string) nodes.TextNode {
 			}
 			bNodes = append(bNodes, node)
 
-=======
->>>>>>> a8966d36db35405a3e5f8d80d9a7ff62d8cf199d
 		case blocks.Heading:
 			trimmed := strings.TrimLeft(blck, "# ")
 			n, _ := blocks.HeaderNum(blck)
@@ -63,11 +60,7 @@ func MarkdownToHTMLNode(input string) nodes.TextNode {
 			body := ""
 			if len(lines) > 2 {
 				raw := strings.Join(lines[1:len(lines)-1], "\n")
-<<<<<<< HEAD
-				body = nodes.UnescapeString(raw)
-=======
 				body = nodes.UnescapeString(nodes.UnescapeString(raw))
->>>>>>> a8966d36db35405a3e5f8d80d9a7ff62d8cf199d
 			}
 			codeNode := nodes.TextNode{
 				Tag:      "code",
