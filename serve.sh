@@ -1,1 +1,1 @@
-go build -o prod ./src/. && ./prod serve
+go build -o prod ./src/cmd/transpiler/. && ./prod serve

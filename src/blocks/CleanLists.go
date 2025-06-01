@@ -1,12 +1,15 @@
-package nodes
+package blocks
 
 import (
 	"strings"
+
+	"github.com/Daxin319/SSGo/src/inline"
+	"github.com/Daxin319/SSGo/src/nodes"
 )
 
-func CleanLists(block string) []TextNode {
+func CleanLists(block string) []nodes.TextNode {
 	lines := strings.Split(block, "\n")
-	var newNodes []TextNode
+	var newNodes []nodes.TextNode
 
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line) // trim whitespace and skip if empty after trimming
@@ -15,10 +18,10 @@ func CleanLists(block string) []TextNode {
 		}
 
 		content := stripListMarker(trimmed) // strip list markers, convert to child nodes, map HTML and append to nodes slice to be returned
-		children := TextToChildren(content)
-		children = MapToHTMLChildren(children, 0)
+		children := inline.TextToChildren(content)
+		children = nodes.MapToHTMLChildren(children, 0)
 
-		newNodes = append(newNodes, TextNode{
+		newNodes = append(newNodes, nodes.TextNode{
 			Tag:      "li",
 			Children: children,
 		})
