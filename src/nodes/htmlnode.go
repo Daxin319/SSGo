@@ -19,6 +19,7 @@ const (
 	Subscript
 	Superscript
 	Highlight
+	RawHTML
 )
 
 type TextNode struct {
@@ -80,6 +81,9 @@ func (h *TextNode) ToHTML() string {
 	default:
 		if len(h.Children) == 0 {
 			if len(h.Props) == 0 {
+				if h.TextType == RawHTML {
+					return fmt.Sprintf("<%s>%s</%s>", h.Tag, h.Text, h.Tag)
+				}
 				return fmt.Sprintf("<%s>%s</%s>", h.Tag, escapeHTML(h.Text), h.Tag)
 			}
 			return fmt.Sprintf("<%s%s>%s</%s>", h.Tag, h.PropsToHTML(), escapeHTML(h.Text), h.Tag)
@@ -118,6 +122,8 @@ func String(t enum) string {
 		return "bolditalic"
 	case Highlight:
 		return "highlight"
+	case RawHTML:
+		return "rawhtml"
 	default:
 		return "unknown text type"
 	}

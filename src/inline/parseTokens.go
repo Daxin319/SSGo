@@ -81,9 +81,24 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 	for i := 0; i < len(tokens); {
 		t := tokens[i]  // start with the first token
 		switch t.Kind { // switch on text type
+		case "raw_html":
+			// Emit verbatim—no escaping or children—just pass through.
+			newNodes = append(newNodes, nodes.TextNode{
+				Text:     t.Value,
+				TextType: nodes.RawHTML, // treat as plain text in the AST, but Render will print it unescaped
+				Url:      "",
+				Tag:      "",
+				Value:    "",
+				Children: nil,
+				Props:    nil,
+			})
+			i++
+			continue
+
 		case "code":
 			newNodes = append(newNodes, nodes.TextNode{TextType: nodes.Code, Text: t.Value}) // code gets no formatting, append and move on
 			i++
+
 		case "![", "[":
 			isImage := t.Kind == "!["                      // bool isImage
 			j := i + 1                                     // current pos is next token
@@ -149,6 +164,7 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 				stack = append(stack, delimRun{marker: m, pos: len(newNodes)})
 			}
 			i++
+
 		case "<":
 			var href string
 			if strings.Contains(t.Value, "@") {
@@ -158,6 +174,7 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 			}
 			newNodes = append(newNodes, nodes.TextNode{TextType: nodes.Link, Url: href, Children: []nodes.TextNode{{TextType: nodes.Text, Text: t.Value}}})
 			i++
+
 		case "]", "(", ")": // closing link/image brackets and parens
 			newNodes = append(newNodes, nodes.TextNode{TextType: nodes.Text, Text: t.Value})
 			i++

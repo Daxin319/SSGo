@@ -15,7 +15,23 @@ type Token struct {
 	// Col   int
 }
 
-var emailRE = regexp.MustCompile(`^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`)
+var emailRE = regexp.MustCompile(`^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`) // standard CommonMark email regex
+
+// The below regex handles:
+//   - HTML comments            <!-- … -->
+//   - Simple open/end tags     <tag …> or </tag>
+//   - Declarations (e.g. <!DOCTYPE …>)
+//   - Processing instructions  <? … >
+//   - CDATA sections           <![CDATA[ … ]]>
+var htmlInlineRe = regexp.MustCompile(
+	`^(` +
+		`<!--[\s\S]*?-->` + // HTML comment
+		`|<!\[CDATA\[[\s\S]*?\]\]>` + // CDATA
+		`|<![A-Za-z][A-Za-z0-9-]*(?:\s+[^<>]*?)?>` + // DOCTYPE/declaration
+		`|<\?[^\n]*?\?>` + // Processing instruction
+		`|<\/?[A-Za-z][A-Za-z0-9-]*(?:\s+(?:[A-Za-z_:][A-Za-z0-9_.:-]*)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^ \t\r\n\f/>]*))?)*\s*\/?>` +
+		`)`,
+)
 
 func TokenizeInline(input string) []Token {
 	var out []Token
@@ -25,7 +41,24 @@ func TokenizeInline(input string) []Token {
 
 		r := runes[i] // set and check rune, create Token depending on what we found
 
-		if r == '<' { // autolinks
+		// If the next characters form a valid CommonMark “raw HTML” chunk,
+		// consume it all as one token of kind="raw_html".
+		if r == '<' {
+			// Convert the suffix to a string so we can apply htmlInlineRe.
+			rest := string(runes[i:])
+			if loc := htmlInlineRe.FindStringIndex(rest); loc != nil {
+				// loc = [start‐index, end‐index] in bytes of rest.
+				matchStr := rest[loc[0]:loc[1]]
+				// Convert matchStr back to runes so we know how many runes we consumed:
+				matchRunes := []rune(matchStr)
+
+				out = append(out, Token{
+					Kind:  "raw_html",
+					Value: matchStr,
+				})
+				i += len(matchRunes)
+				continue
+			}
 			j := i + 1
 			for j < n && runes[j] != '>' {
 				j++
@@ -43,41 +76,35 @@ func TokenizeInline(input string) []Token {
 					continue
 				}
 			}
+
 		}
 
 		if r == '`' {
-			// count opening ticks
-			j := i
+			j := i // count opening ticks
 			for j < n && runes[j] == '`' {
 				j++
 			}
 			delimLen := j - i
 
-			// scan for a matching run of exactly delimLen backticks
-			k := j
+			k := j // scan for a matching run of exactly delimLen backticks
 			for {
-				// find next backtick
-				for k < n && runes[k] != '`' {
+				for k < n && runes[k] != '`' { // find next backtick
 					k++
 				}
 				if k >= n {
 					break
 				}
-				// count ticks at k
-				l := k
+				l := k // count ticks at k
 				for l < n && runes[l] == '`' {
 					l++
 				}
 				if l-k == delimLen {
-					// **skip** if this run is escaped (preceded by a backslash)
-					if k > 0 && runes[k-1] == '\\' {
+					if k > 0 && runes[k-1] == '\\' { // **skip** if this run is escaped (preceded by a backslash)
 						k = l
 						continue
 					}
-					// found closer—capture literal content
-					content := string(runes[j:k])
-					// trim a single leading/trailing space per spec
-					if len(content) > 1 && content[0] == ' ' && content[len(content)-1] == ' ' {
+					content := string(runes[j:k])                                                // found closer—capture literal content
+					if len(content) > 1 && content[0] == ' ' && content[len(content)-1] == ' ' { // trim a single leading/trailing space per spec
 						content = content[1 : len(content)-1]
 					}
 					out = append(out, Token{Kind: "code", Value: content})
@@ -87,8 +114,7 @@ func TokenizeInline(input string) []Token {
 				k = l
 			}
 
-			// no closer: emit each backtick literally
-			for range delimLen {
+			for range delimLen { // no closer: emit each backtick literally
 				out = append(out, Token{Kind: "text", Value: "`"})
 			}
 			i = j
