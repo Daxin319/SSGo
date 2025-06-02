@@ -1,6 +1,7 @@
 package tokenizer
 
 import (
+	"regexp"
 	"strings"
 )
 
@@ -14,6 +15,8 @@ type Token struct {
 	// Col   int
 }
 
+var emailRE = regexp.MustCompile(`^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`)
+
 func TokenizeInline(input string) []Token {
 	var out []Token
 	runes := []rune(input)
@@ -21,6 +24,27 @@ func TokenizeInline(input string) []Token {
 	for i := 0; i < n; {
 
 		r := runes[i] // set and check rune, create Token depending on what we found
+
+		if r == '<' { // autolinks
+			j := i + 1
+			for j < n && runes[j] != '>' {
+				j++
+			}
+			if j < n {
+				inner := string(runes[i+1 : j])
+				if emailRE.MatchString(inner) {
+					out = append(out, Token{Kind: "<", Value: inner}) // parser handles mailto:
+					i = j + 1
+					continue
+				}
+				if strings.HasPrefix(inner, "http://") || strings.HasPrefix(inner, "https://") { // check for other uri's
+					out = append(out, Token{Kind: "<", Value: inner})
+					i = j + 1
+					continue
+				}
+			}
+		}
+
 		if r == '`' {
 			// count opening ticks
 			j := i

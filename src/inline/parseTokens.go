@@ -106,6 +106,7 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 		case "*", "**", "***", "_", "__", "___", "==":
 			processAsterisk(t.Kind) // handle this bullshit
 			i++                     // next token
+
 		case "~~", "~", "^": // strikethrough or subscript or superscript
 			m := t.Kind
 			closed := false
@@ -123,6 +124,15 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 			if !closed {
 				stack = append(stack, delimRun{marker: m, pos: len(newNodes)})
 			}
+			i++
+		case "<":
+			var href string
+			if strings.Contains(t.Value, "@") {
+				href = "mailto:" + t.Value
+			} else {
+				href = t.Value
+			}
+			newNodes = append(newNodes, nodes.TextNode{TextType: nodes.Link, Url: href, Children: []nodes.TextNode{{TextType: nodes.Text, Text: t.Value}}})
 			i++
 		case "]", "(", ")": // closing link/image brackets and parens
 			newNodes = append(newNodes, nodes.TextNode{TextType: nodes.Text, Text: t.Value})
