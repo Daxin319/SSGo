@@ -44,4 +44,5 @@ func generatePage(fromPath, destPath, templatePath, basePath string) {
 	finalTemp := strings.Replace(string(srcTemp), `docs/index.css`, `index.css`, 1)
 
 	os.WriteFile(destPath, []byte(finalTemp), 0755)
+	return
 }
