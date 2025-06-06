@@ -38,10 +38,18 @@ func TokenizeInline(input string) []Token {
 	runes := []rune(input)
 	n := len(runes)
 	for i := 0; i < n; {
+		r := runes[i]
 
-		r := runes[i] // set and check rune, create Token depending on what we found
+		// Check for HTML entities and character references
+		if r == '&' {
+			if entity, consumed := parseEntity(runes, i); consumed > 0 {
+				out = append(out, Token{Kind: "text", Value: entity})
+				i += consumed
+				continue
+			}
+		}
 
-		// If the next characters form a valid CommonMark “raw HTML” chunk,
+		// If the next characters form a valid CommonMark "raw HTML" chunk,
 		// consume it all as one token of kind="raw_html".
 		if r == '<' {
 			// Convert the suffix to a string so we can apply htmlInlineRe.
