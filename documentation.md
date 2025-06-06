@@ -1,129 +1,340 @@
-## Documentation for SSGo
+# SSGo Documentation
 
-### Packages
+SSGo is a static site generator that converts Markdown files to HTML, with support for extended Markdown features and custom styling. It aims to provide a simple yet powerful tool for creating static websites with a focus on maintainability and extensibility.
 
-#### main
+## Table of Contents
 
-The main package contains only the actual main program. This bit of code is responsible for the top level commands, calling all sub-packages/functions in order to properly process the input.
+- [Quick Start Guide](#quick-start-guide)
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Packages](#packages)
+  - [Main](#main)
+  - [FileIO](#fileio)
+  - [HTML](#html)
+  - [Blocks](#blocks)
+  - [Inline](#inline)
+  - [Tokenizer](#tokenizer)
+  - [Nodes](#nodes)
+- [Markdown Support](#markdown-support)
+- [Contributing](#contributing)
 
-It starts by setting the `basePath` variable depending on whether or not the `serve` optional argument was called. The `basePath` variable is usually a directory, and it should be expressed as `/dirName`, as the internal logic of the program will handle the trailing `/`.
+## Quick Start Guide
 
-If it was not provided, the program will set the base path to the provided argument, otherwise it is left blank. This allows you to call different base paths depending on where you would like to host your webpage. I'm using gitpages for my personal use, so I call the program with `SSGo /SSGo` in order to have the transpiler build the html with the appropriate path.
+This program is designed to copy static resources into the `/docs` directory inside the repository from the `/static` directory, then process any markdown files in the `/content` directory into HTML which is then also put in the `/docs` directory to be served to localhost or formatted for your host service of choice.
 
-After setting the base path it gets the working directory and saves it to the `path` variable, then passes that variable to `fileio.CopyStaticToDocs(path)` which is the function that handles copying all data from the static dir to the docs dir.
+### Prerequisites
 
-It then calls the recursive page generation function that crawls the entire `/content` directory and parses all markdown into a mirrored structure in the `/docs` directory as HTML.
+- Go version 1.22 or later
+- Git
+- A text editor
+- Basic knowledge of Markdown
 
-Finally, if the `serve` argument was used, then the program will spin up a server on `localhost:3000` and serve the contents of the `/docs` directory to it so you can check changes to your markdown before committing the final upload to your host of choice.
+### Installation
 
-#### fileio
+1. Install Go version 1.22 or later:
+   ```bash
+   curl -sS https://webi.sh/golang | sh
+   ```
+   Alternatively, follow the [official Go installation guide](https://go.dev/doc/install).
 
-The fileio package handles all file system interactions. This includes clearing all old copies of the file structure, copying static files, reading all of the input and writing all of the output for the program.
+2. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/SSGo.git
+   cd SSGo
+   ```
 
-##### `func fileio.CopyStaticToDocs(path string) error`
+### Usage
 
-This function takes the current working directory as a string as input, and returns nothing unless there's a problem. It creates the origin and target path strings and copies all data from the origin to the target.
+1. **Static Resources**
+   - Place static assets in the `/static` directory
+   - Organize resources in subdirectories as needed for website navigation
 
-##### `func GeneratePagesRecursive(fromDirPath, destDirPath, templatePath, basePath string)`
+2. **Content**
+   - Create markdown files in the `/content` directory
+   - Use `index.md` as the main file for each page
+   - Maintain the same directory structure as your desired website
 
-This is the recursive function that handles the actual parse calls. It opens the origin directory, and for each entry in the directory it checks whether it's a markdown file or a directory. If it's a directory it creates a copy of the directory in the target location, then calls `GeneratePagesRecursive` with the updated origin and target directories. Otherwise it simply calls `generatePage` and returns to the previous call in the recursion stack.
+3. **Development**
+   - Run `. serve.sh` to generate pages and serve locally:
+     ```bash
+     ./serve.sh
+     ```
+   - Access your site at `http://localhost:3000`
 
-  ##### `func generatePage(fromDirPath, destDirPath, templatePath, basePath string)`
+4. **Production**
+   - Run `. build.sh` to generate pages for deployment:
+     ```bash
+     ./build.sh
+     ```
+   - Edit `build.sh` to set your repository name (replace `/SSGo` with your path)
+   - Deploy the contents of `/docs` to your hosting service
 
-  This is the actual individual page generation function. It opens the file at the origin location and reads it, creates a temporary variable that stores the data from the template and read that data, extract the H1 header from the top of the file and separate it into the title and content, call `html.MarkdownToHTMLNode` on the content to creat the AST, then walk the tree with `node.ToHTML()` finally it injects the title and content into the temporary template file, makes corrections to links and images as well as the CSS URIs in the HTML, and finally writes it all to disk.
+## Overview
 
-#### html
+SSGo is built with a modular architecture that separates concerns into distinct packages, making the codebase maintainable and extensible. The conversion process follows these steps:
 
-This package handles the actual conversion of markdown to the HTML AST. 
+1. File System Operations
+   - Copy static assets
+   - Process markdown files
+   - Generate output structure
 
-##### `func MarkdownToHTMLNode(input string) nodes.Textnode`
+2. Markdown Processing
+   - Parse blocks
+   - Process inline elements
+   - Generate AST
 
-The first thing it does is it replaces newlines with the html line break, then sanitizes null characters for security reasons using `blocks.SanitizeNulls`.
+3. HTML Generation
+   - Convert AST to HTML
+   - Apply templates
+   - Handle assets
 
-Now it gets into the meat of the work, it starts by initializing an empty `nodes.TextNode` struct, breaks the markdown into block levels with `blocks.MarkdownToBlocks`, and initializes an empty slice of `nodes.TextNode`s.
+## Architecture
 
-It then cycles through each block, and assigns a block type, then creates the appropriate node and appends it to the slice. Some nodes have children and some are explicitly leaf nodes and have no children and all of this is handled in the switch statement.
+The project is organized into several packages, each handling a specific aspect of the markdown-to-HTML conversion process:
 
-#### blocks
+1. `main` - Entry point and high-level program flow
+2. `fileio` - File system operations
+3. `html` - HTML AST generation
+4. `blocks` - Block-level markdown parsing
+5. `inline` - Inline markdown parsing
+6. `tokenizer` - Token generation for inline parsing
+7. `nodes` - AST node definitions and HTML conversion
 
-This package handles all block level parsing. Currently a WIP, I'll add documentation for this bit when I finish it.
+## Packages
 
-#### inline
+### main
 
-This package handles all of the inline level parsing.
+The main package orchestrates the entire conversion process.
 
-##### `func TextToTextNodes(s string) []nodes.TextNode` 
+#### `func main()`
 
-This function takes a block of markdown as input, tokenizes the block, parses the stack into an AST, and returns the AST in the form of a slice of `nodes.TextNode`s
+The entry point that:
+1. Sets the `basePath` based on the `serve` argument
+2. Copies static files to the docs directory
+3. Recursively processes markdown files
+4. Optionally starts a development server
 
-##### `func TextToChildren(s string) []nodes.TextNode`
+The `basePath` is used to handle different hosting scenarios (e.g., GitHub Pages requires `/SSGo`).
 
-Simply calls `TextToTextNodes`, only really here to help me keep the logic straight during development.
+### fileio
 
-##### `func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode`
+Handles all file system operations.
 
-Probably the most complex function in the project at the moment.
+#### `func CopyStaticToDocs(path string) error`
 
-It begins by initializing empty slices for the AST output and a small stack to track delimiter runs.
+Copies static assets from the source directory to the destination directory.
 
-Then I define a function that wraps any children in the parent html tag using a simple switch statement
+#### `func GeneratePagesRecursive(fromDirPath, destDirPath, templatePath, basePath string)`
 
-Next I have a function to handle repeating delimiters. It started as an asterisk only func and has gotten more complicated but I haven't renamed it yet. It simply creates a delimiter run for repeating delimiters and finds a matching ending delimiter, if it's unable to find one it treats the opening run as literal characters.
+Recursively processes directories and files:
+- Creates mirror directory structure
+- Converts markdown files to HTML
+- Preserves static assets
 
-Finally I start the main logic, which is a single pass over the token stack, using a switch statement to build the AST based on the token types.
+#### `func generatePage(fromDirPath, destDirPath, templatePath, basePath string)`
 
-#### tokenizer
+Handles individual page generation:
+1. Reads markdown content
+2. Extracts title from H1 header
+3. Converts content to HTML AST
+4. Applies template
+5. Fixes asset paths
+6. Writes output file
 
-This package is the inline tokenizer.
+### html
 
-##### `func TokenizeInline(input string) []Token`
+Converts markdown to HTML AST.
 
-This function takes a block of markdown text and parses the inline formatting into a token stack, so that the inline parser can output the AST. To properly handle unicode characters, I have to cast the input string to a rune slice, and then I single pass the rune slice, first checking for raw HTML and falling back to autolinks if it's notraw HTML, then checking for code spans, and finally handling all of the other delimiters.
+#### `func MarkdownToHTMLNode(input string) nodes.TextNode`
 
-#### nodes
+The main conversion function that:
+1. Sanitizes input
+2. Splits into blocks
+3. Creates AST nodes
+4. Handles block types:
+   - Headers
+   - Paragraphs
+   - Lists
+   - Code blocks
+   - Blockquotes
+   - HTML blocks
+   - Horizontal rules
 
-This package handles the node level AST work
+### blocks
 
-##### `func UnescapeString(s string) string` 
+Handles block-level markdown parsing. Currently supports basic block types with some limitations:
 
-Since certain elements are only escaped in certain contexts, the `UnescapeString` function is located in the nodes package. This handles contexts where I need to leave the literal text entered by the user contextually.
+#### `func SanitizeNulls(input string) string`
 
-##### `func MapToHTMLChildren(children []TextNode, depth int) []TextNode`
+Security function that removes null characters from input.
 
-This function is used to iterate through any children of a parent node and convert them to HTML nodes.
+#### `func MarkdownToBlocks(input string) []string`
 
-##### `func textNodeToHTMLNodeInternal(n TextNode, depth int) TextNode`
+Splits markdown into blocks, handling:
+- Headers (H1-H6)
+- Paragraphs
+- Blockquotes (single level only)
+- Lists (single level only)
+  - Ordered lists (1. 2. 3.)
+  - Unordered lists (- * +)
+- Code blocks
+  - Fenced code blocks (``` or ~~~)
+- Horizontal rules (- * _)
+- Empty lines (block separators)
 
-Used to convert a single node to an HTML node, checks text type and creates children/props as needed.
+Limitations (at this time):
+- Nested lists are not supported
+- Nested blockquotes are not supported
+- List items cannot contain block-level elements
+- Task lists are not supported
+- Definition lists are not supported
+- HTML blocks are not supported
+- Indented code blocks are not supported
+
+### inline
+
+Handles inline markdown parsing.
+
+#### `func TextToTextNodes(s string) []nodes.TextNode`
+
+Converts inline markdown to AST nodes:
+1. Tokenizes input
+2. Parses token stack
+3. Returns AST nodes
+
+#### `func TextToChildren(s string) []nodes.TextNode`
+
+Helper function that calls `TextToTextNodes`.
+
+#### `func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode`
+
+Complex function that:
+1. Initializes AST output and delimiter stack
+2. Processes tokens in a single pass
+3. Handles nested formatting
+4. Builds AST based on token types
+
+### tokenizer
+
+Generates tokens for inline parsing.
+
+#### `func TokenizeInline(input string) []Token`
+
+Converts markdown text to tokens, handling:
+- Raw HTML elements
+- Autolinks (URLs and email addresses)
+- Code spans
+- HTML entities and character references
+- Emphasis (bold, italic, bolditalic)
+- Strikethrough
+- Subscript and superscript
+- Highlighting
+- Links and images
+- Escaped characters
+
+#### `func parseEntity(runes []rune, i int) (string, int)`
+
+Handles HTML entities and character references:
+- Named entities (e.g., `&amp;`, `&lt;`, `&copy;`)
+- Decimal character references (e.g., `&#169;`, `&#8212;`)
+- Hexadecimal character references (e.g., `&#xA9;`, `&#x2014;`)
+- Invalid entities (treated as literal text)
+
+### nodes
+
+Defines AST nodes and handles HTML conversion.
+
+#### Types
 
 ##### `type enum int`
 
-This is Go, there are no real enums, I had to make them.
+Represents node types in the AST.
 
 ##### `type TextNode struct`
 
-The TextNode struct that represents all possible data.
+Core AST node structure containing:
+- Node type
+- Content
+- Children
+- Properties
+- HTML conversion methods
 
 ##### `type HTMLNode interface`
 
-This interface means that the node is being converted to HTML, since I plan to add other target outputs later, I made this interface to start with the organization.
+Interface for HTML conversion, allowing for future output formats.
+
+#### Functions
+
+##### `func UnescapeString(s string) string`
+
+Handles context-specific string unescaping.
+
+##### `func MapToHTMLChildren(children []TextNode, depth int) []TextNode`
+
+Recursively converts child nodes to HTML.
+
+##### `func textNodeToHTMLNodeInternal(n TextNode, depth int) TextNode`
+
+Converts a single node to HTML.
 
 ##### `func escapeHTML(s string) string`
 
-A simple function to escape characters in an HTML string so that they are properly interpreted by the browser.
+Escapes HTML special characters.
 
 ##### `func String(t enum) string`
 
-This func is only here for debugging, but it returns the string version of the fake enum.
+Debug helper for enum string representation.
+
+#### Methods
 
 ##### `func (h *TextNode) Repr() string`
 
-simple formatting function for debugging so I can see my actual nodes and what data is in them.
+Debug helper for node string representation.
 
 ##### `func (h *TextNode) PropsToHTML() string`
 
-One of the 2 required methods for the `HTMLNode` interface. This properly formats any properties provided in the markdown (like the url for an `<a href= >` tag) for HTML output.
+Formats node properties as HTML attributes.
 
 ##### `func (h *TextNode) ToHTML() string`
 
-The function that actually makes the change. This converts an individual node from a node to an HTML string, but it also makes sure that it handles all props and children before returning the final string
+Converts node and its children to HTML string.
+
+## Markdown Support
+
+SSGo currently supports approximately 70% of the CommonMark specification, plus several extended features:
+
+### Supported Features
+
+- Basic block elements
+  - Headers (H1-H6)
+  - Paragraphs
+  - Blockquotes
+  - Lists
+  - Code blocks
+  - Horizontal rules
+
+- Inline elements
+  - Emphasis (bold, italic)
+  - Links and images
+  - Code spans
+  - HTML entities
+  - Autolinks
+
+### Extended Features
+
+- Strikethrough (`~~text~~`)
+- Subscript (`~text~`)
+- Superscript (`^text^`)
+- Highlighting (`==text==`)
+
+### Planned Features
+
+- Nested lists and blockquotes
+- Task lists
+- Definition lists
+- HTML blocks
+- Indented code blocks
+
+## Contributing
+
+This has been a solo project for my portfolio, but if you see something please feel free to reach out to me and let me know you've seen something, then I'll happily discuss it with you, but I don't want you to fix it for me.
