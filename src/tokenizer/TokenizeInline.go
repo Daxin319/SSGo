@@ -1,6 +1,7 @@
 package tokenizer
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -26,11 +27,13 @@ var protocolRE = regexp.MustCompile(`^(?:https?|ftp|ftps|sftp|ws|wss)://[^\s]+$`
 var gfmDomainRE = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}(?::[0-9]+)?(?:/[a-zA-Z0-9\-._~:/?#\[\]@!$&'()*+,;=%]*)?$`)
 
 func TokenizeInline(input string) []Token {
+	fmt.Printf("Starting tokenization of input length %d\n", len(input))
 	var out []Token
 	runes := []rune(input)
 	n := len(runes)
 	for i := 0; i < n; {
 		r := runes[i]
+		fmt.Printf("Processing byte %d: %q\n", i, r)
 
 		// Check for HTML entities and character references
 		if r == '&' {
@@ -88,47 +91,63 @@ func TokenizeInline(input string) []Token {
 		}
 
 		if r == '`' {
+			fmt.Printf("Found backtick at position %d\n", i)
 			j := i // count opening ticks
 			for j < n && runes[j] == '`' {
 				j++
 			}
 			delimLen := j - i
+			fmt.Printf("Found %d backticks at start\n", delimLen)
 
 			k := j // scan for a matching run of exactly delimLen backticks
-			for {
-				for k < n && runes[k] != '`' { // find next backtick
+			found := false
+			for k < n {
+				// Find next backtick
+				for k < n && runes[k] != '`' {
 					k++
 				}
 				if k >= n {
 					break
 				}
-				l := k // count ticks at k
+
+				// Count matching backticks
+				l := k
 				for l < n && runes[l] == '`' {
 					l++
 				}
+
+				fmt.Printf("Found potential closing backticks at %d, length %d\n", k, l-k)
+
 				if l-k == delimLen {
-					if k > 0 && runes[k-1] == '\\' { // **skip** if this run is escaped (preceded by a backslash)
+					// Check if this is an escaped backtick sequence
+					if k > 0 && runes[k-1] == '\\' {
+						fmt.Printf("Found escaped backticks at %d, skipping\n", k)
+						// Skip this sequence and continue looking
 						k = l
 						continue
 					}
-					content := string(runes[j:k])                                                // found closer—capture literal content
-					if len(content) > 1 && content[0] == ' ' && content[len(content)-1] == ' ' { // trim a single leading/trailing space per spec
+
+					content := string(runes[j:k])
+					if len(content) > 1 && content[0] == ' ' && content[len(content)-1] == ' ' {
 						content = content[1 : len(content)-1]
 					}
+					fmt.Printf("Emitting code token with content: %q\n", content)
 					out = append(out, Token{Kind: "code", Value: content})
 					i = l
-					goto nextToken
+					found = true
+					break
 				}
 				k = l
 			}
 
-			for range delimLen { // no closer: emit each backtick literally
-				out = append(out, Token{Kind: "text", Value: "`"})
+			if !found {
+				fmt.Printf("No matching backticks found, emitting literal backticks\n")
+				// No matching backticks found, emit literal backticks
+				for range delimLen {
+					out = append(out, Token{Kind: "text", Value: "`"})
+				}
+				i = j
 			}
-			i = j
-			continue
-
-		nextToken:
 			continue
 		}
 
@@ -138,6 +157,10 @@ func TokenizeInline(input string) []Token {
 				i += 2
 				continue
 			}
+			// If not a valid escape, treat as literal backslash
+			out = append(out, Token{Kind: "text", Value: "\\"})
+			i++
+			continue
 		}
 
 		if i+1 < n && runes[i] == '=' && runes[i+1] == '=' { //highlight
@@ -146,12 +169,15 @@ func TokenizeInline(input string) []Token {
 			continue
 		}
 		if r == '!' && i+1 < n && runes[i+1] == '[' { // image open
-			out = append(out, Token{Kind: "![", Value: "![]"}) // create image opening Token and append
-			i += 2                                             // advance two runes
+			fmt.Printf("Found image marker at %d, next char is %q\n", i, runes[i+1])
+			out = append(out, Token{Kind: "![", Value: "!["}) // create image opening Token and append
+			i += 2                                            // advance two runes
+			fmt.Printf("Advanced to position %d, next char is %q\n", i, runes[i])
 			continue
 		}
 
 		if r == '[' || r == ']' || r == '(' || r == ')' { // link/list delimiter
+			fmt.Printf("Found delimiter %q at %d\n", r, i)
 			out = append(out, Token{Kind: string(r), Value: string(r)})
 			i++ // advance one rune
 			continue
@@ -191,9 +217,16 @@ func TokenizeInline(input string) []Token {
 			j++
 		}
 		if j > i {
+			fmt.Printf("Emitting text token from %d to %d: %q\n", i, j, string(runes[i:j]))
 			out = append(out, Token{Kind: "text", Value: string(runes[i:j])}) // create text Token and append
+			i = j                                                             // advance original position
+		} else {
+			// If we didn't find any text to emit, we need to handle the current character
+			fmt.Printf("No text to emit at %d, handling current char %q\n", i, r)
+			out = append(out, Token{Kind: "text", Value: string(r)})
+			i++
 		}
-		i = j // advance original position
 	}
+	fmt.Printf("Finished tokenization, emitted %d tokens\n", len(out))
 	return out // return Tokens slice
 }

@@ -44,6 +44,13 @@ func escapeHTML(s string) string {
 	return s
 }
 
+func escapeCodeHTML(s string) string {
+	s = strings.ReplaceAll(s, "&", "&amp;")
+	s = strings.ReplaceAll(s, "<", "&lt;")
+	s = strings.ReplaceAll(s, ">", "&gt;")
+	return s
+}
+
 func (h *TextNode) PropsToHTML() string {
 	var finalString string
 	for key := range h.Props {
@@ -77,6 +84,19 @@ func (h *TextNode) ToHTML() string {
 
 	case "hr":
 		return "<hr />"
+
+	case "code":
+		if len(h.Children) == 0 {
+			return fmt.Sprintf("<%s>%s</%s>", h.Tag, escapeCodeHTML(h.Text), h.Tag)
+		}
+		for _, c := range h.Children {
+			if c.Text != "" && len(c.Children) == 0 {
+				cString += escapeCodeHTML(c.Text)
+			} else {
+				cString += c.ToHTML()
+			}
+		}
+		return fmt.Sprintf("<%s>%s</%s>", h.Tag, cString, h.Tag)
 
 	default:
 		if len(h.Children) == 0 {

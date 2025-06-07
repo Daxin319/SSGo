@@ -1,5 +1,9 @@
 package nodes
 
+import (
+	"strings"
+)
+
 func MapToHTMLChildren(children []TextNode, depth int) []TextNode { // iterate through children to convert to htmlnodes
 	out := make([]TextNode, 0, len(children))
 	for _, c := range children {
@@ -67,7 +71,12 @@ func textNodeToHTMLNodeInternal(n TextNode, depth int) TextNode { // convert a s
 		if n.Props == nil {
 			n.Props = make(map[string]string)
 		}
-		n.Props["href"] = n.Url
+		// Convert .md links to .html
+		url := n.Url
+		if strings.HasSuffix(url, ".md") {
+			url = strings.TrimSuffix(url, ".md") + ".html"
+		}
+		n.Props["href"] = url
 		n.Children = MapToHTMLChildren(n.Children, depth+1)
 		n.Text = ""
 
