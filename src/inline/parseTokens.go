@@ -1,6 +1,7 @@
 package inline
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/Daxin319/SSGo/src/nodes"
@@ -15,68 +16,6 @@ type delimRun struct {
 func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 	var newNodes []nodes.TextNode // initialize textnode and delimrun slices
 	var stack []delimRun
-
-	wrap := func(marker string, children []nodes.TextNode) nodes.TextNode { // anon func to wrap children in parent tag
-		switch marker {
-		case "*", "_":
-			return nodes.TextNode{TextType: nodes.Italic, Children: children}
-		case "**", "__":
-			return nodes.TextNode{TextType: nodes.Bold, Children: children}
-		case "***", "___":
-			return nodes.TextNode{TextType: nodes.BoldItalic, Children: children}
-		case "~~":
-			return nodes.TextNode{TextType: nodes.Strikethrough, Children: children}
-		case "~":
-			return nodes.TextNode{TextType: nodes.Subscript, Children: children}
-		case "^":
-			return nodes.TextNode{TextType: nodes.Superscript, Children: children}
-		case "==":
-			return nodes.TextNode{TextType: nodes.Highlight, Children: children}
-		}
-		return nodes.TextNode{TextType: nodes.Text, Text: marker}
-	}
-
-	processAsterisk := func(m string) { // anon func to handle all multi-delims
-		length := len(m)
-		char := m[0]
-		if length <= 2 {
-			for i := len(stack) - 1; i >= 0; i-- {
-				if stack[i].marker == m {
-					op := stack[i].pos                                      // set original position to current token
-					content := append([]nodes.TextNode{}, newNodes[op:]...) // initialize content stack
-					newNodes = newNodes[:op]                                // set nodes stack equal to current nodes stack up to the current position
-					newNodes = append(newNodes, wrap(m, content))           // append content stack wrapped in parent delim
-					stack = append(stack[:i], stack[i+1:]...)               // pop token from stack
-					return
-				}
-			}
-			stack = append(stack, delimRun{marker: m, pos: len(newNodes)}) // append to be treated as plaintext
-			return
-		}
-		remaining := length
-		for remaining > 0 { // as long as there are still characters in the delim
-			idx := -1
-			for j := len(stack) - 1; j >= 0; j-- {
-				if stack[j].marker[0] == char && len(stack[j].marker) <= remaining {
-					idx = j // set index to current stack position
-					break
-				}
-			}
-			if idx >= 0 {
-				mrk := stack[idx].marker                                // set marker2 to the marker at current stack index
-				op := stack[idx].pos                                    // set original position to current stack position
-				content := append([]nodes.TextNode{}, newNodes[op:]...) // initialize content stack of all nodes above this one in the nodes stack
-				newNodes = newNodes[:op]                                // set nodes stack equal to all nodes below this one in the stack
-				newNodes = append(newNodes, wrap(mrk, content))         // append content stack wrapped in parent delim to nodes stack
-				stack = append(stack[:idx], stack[idx+1:]...)           // pop this token off the stack
-				remaining -= len(mrk)                                   // subtract this marker's length from remaining to ensure triple delims are properly split and matched
-			} else {
-				marker := strings.Repeat(string(char), remaining) // treat as unmatched, append all to stack
-				stack = append(stack, delimRun{marker: marker, pos: len(newNodes)})
-				break
-			}
-		}
-	}
 
 	for i := 0; i < len(tokens); {
 		t := tokens[i]  // start with the first token
@@ -143,8 +82,8 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 			}
 
 		case "*", "**", "***", "_", "__", "___", "==":
-			processAsterisk(t.Kind) // handle this bullshit
-			i++                     // next token
+			processDelims(t.Kind, &stack, &newNodes) // handle this bullshit
+			i++                                      // next token
 
 		case "~~", "~", "^": // strikethrough or subscript or superscript
 			m := t.Kind
@@ -152,10 +91,10 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 			for j := len(stack) - 1; j >= 0; j-- {
 				if stack[j].marker == m {
 					op := stack[j].pos
-					content := append([]nodes.TextNode{}, newNodes[op:]...)
+					content := slices.Clone(newNodes[op:])
 					newNodes = newNodes[:op]
 					newNodes = append(newNodes, wrap(m, content))
-					stack = append(stack[:j], stack[j+1:]...)
+					stack = slices.Delete(stack, j, j+1)
 					closed = true
 					break
 				}
