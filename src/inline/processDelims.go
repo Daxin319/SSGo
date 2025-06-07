@@ -22,6 +22,17 @@ func processDelims(m string, stack []delimRun, newNodes []nodes.TextNode) ([]del
 				stack = slices.Delete(stack, i, i+1)          // pop token from stack
 				return stack, newNodes
 			}
+			if len(stack[i].marker) == 3 && stack[i].marker[0] == char && length < 3 {
+				op := stack[i].pos
+				if len(newNodes) > op {
+					content := slices.Clone(newNodes[op:])
+					newNodes = newNodes[:op]
+					newNodes = append(newNodes, wrap(m, content))
+
+					stack[i].marker = strings.Repeat(string(char), 3-length)
+					return stack, newNodes
+				}
+			}
 		}
 		stack = append(stack, delimRun{marker: m, pos: len(newNodes)}) // append to be treated as plaintext
 		return stack, newNodes
