@@ -1,62 +1,49 @@
 # SSGo: A Modern Static Site Generator in Go
 
-SSGo is a fast, extensible static site generator written in Go. It converts Markdown files into well-structured HTML, supporting a wide range of CommonMark and extended Markdown features, including GFM-style autolinks, robust autolink validation, raw HTML passthrough, and advanced line break handling.
+SSGo is a fast, extensible static site generator written in Go. It converts Markdown files into browser readable HTML, supporting a wide range of CommonMark and extended Markdown features.
+
+For a detailed breakdown of the architecture, supported Markdown syntax, and more, please see the full [documentation](documentation.md).
 
 ## Features
 
-- **CommonMark and Extended Markdown Support**
-  - Headers, paragraphs, lists, blockquotes, code blocks, horizontal rules
-  - Inline formatting: bold, italic, strikethrough, subscript, superscript, highlight
-  - Links, images, code spans, HTML entities
-  - GFM-style autolinks: bare domains, subdomains, ports, paths, authentication, and email addresses
-  - Autolink validation using the publicsuffix library for real TLDs
-  - Email autolinks support optional authentication (user:pass), with passwords stripped from the rendered link
-  - Hard line breaks via two spaces or backslash at end of line
-  - Raw HTML blocks and comments are preserved and rendered as HTML
-
-- **Modern Architecture**
-  - Modular codebase for maintainability and extensibility
-  - Clean separation of file I/O, block parsing, inline parsing, AST, and HTML rendering
-
-- **Flexible Output**
-  - Generates HTML files ready for deployment or local development
-  - Customizable templates and static asset support
+- **Markdown Support**: Handles a broad range of block elements (headings, lists, code blocks) and inline elements (bold, italic, links, images, and more). See the [Markdown Support](#markdown-support) section in the documentation for a complete list.
+- **Extended Syntax**: Includes support for strikethrough, highlighting, subscript, and superscript.
+- **Autolinking**: Automatically detects and links URLs and email addresses.
+- **Raw HTML**: Allows embedding raw HTML directly in Markdown files.
+- **Customizable**: Supports custom HTML templates and static asset handling.
 
 ## Quick Start
 
 ### Prerequisites
 - Go 1.22 or later
+  - To install, I recommend the [Webi installer](https://webi.sh/golang):
+    ```sh
+    curl -sS https://webi.sh/golang | sh
+    ```
+  - Alternatively, see the [official Go installation instructions](https://go.dev/doc/install).
 - Git (I refuse to believe you don't already have git installed if you're reading this, but just in case: [Git download](https://git-scm.com/downloads) or on Linux: `sudo pacman -S git` or `sudo apt install git`)
 
 ### Installation
-1. Install Go 1.22+ (recommended: [Webi installer](https://webi.sh/golang)):
-   ```sh
-   curl -sS https://webi.sh/golang | sh
-   ```
-   Alternatively, see the [official Go installation instructions](https://go.dev/doc/install).
-2. Clone this repository:
+1. Clone this repository:
    ```sh
    git clone https://github.com/Daxin319/SSGo.git
    cd SSGo
    ```
 
 ### Usage
-1. Place static assets in the `/static` directory.
-2. Add your Markdown content to the `/content` directory, mirroring your desired site structure.
-3. To develop locally:
-   ```sh
-   ./serve.sh
-   ```
-   Visit [http://localhost:3000](http://localhost:3000) to view your site.
-4. To build for production:
-   ```sh
-   ./build.sh
-   ```
-   Deploy the contents of `/docs` to your hosting provider.
-5. If deploying to GitHub Pages or a custom path, edit `build.sh` to set the correct base path for your site.
-6. Enjoy your new static site!
-7. ???
-8. Profit.
+1.  Place your Markdown content in the `/content` directory.
+2.  Add any static assets (CSS, images) to the `/static` directory.
+3.  Run the development server:
+    ```sh
+    ./serve.sh
+    ```
+    Your site will be available at `http://localhost:3000`.
+
+4.  Build for production:
+    ```sh
+    ./build.sh
+    ```
+    The output will be generated in the `/docs` directory, ready for deployment.
 
 ## About This Project
 
@@ -64,13 +51,12 @@ This project began as a personal journey into programming and software developme
 
 Special thanks to [boot.dev](https://www.boot.dev?bannerlord=daxin319) for their excellent programming education platform and for graciously allowing me to use their markdown files for initial testing before expanding the feature set.
 
-**Please note:** I am not currently accepting direct contributions or pull requests. For more information, see the "Contributing" section in [documentation.md](documentation.md).
+This project is not currently accepting contributions. For more details, please see the "Contributing" section in the [documentation](documentation.md).
 
 ## License
 
 This project is licensed under the MIT License with the Commons Clause restriction. See the [LICENSE](LICENSE) file for details.
 
-## Commercial Use
+### Commercial Use
 
-Commercial use of this software is not permitted under the current license (MIT + Commons Clause).  
-If you are interested in obtaining a commercial license, please contact Samuel Lyle Higginbotham (Daxin319) via GitHub or email: lylehigg@gmail.com.
+Commercial use of this software is not permitted under the current license. If you are interested in a commercial license, please contact Lyle Higginbotham via GitHub or at lylehigg@gmail.com.
