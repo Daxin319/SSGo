@@ -27,6 +27,8 @@ Can I get ==Highlighted Text== to work as well? What about ==Highlighted **_and 
 A line ending in a backslash should be treated as a hard break \
 to make sure that these appear on separate lines.
 
+*****some random** *sentence** - an eldritch horror inspired by Trolley at boot.dev
+
 Correctly nested:
 
 - **Bold _with italic inside_**

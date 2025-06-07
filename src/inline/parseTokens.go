@@ -141,8 +141,17 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 		}
 	}
 
-	for _, op := range stack {
-		newNodes = append(newNodes, nodes.TextNode{TextType: nodes.Text, Text: op.marker}) // remaining unclosed delims treated as plaintext
+	// Handle any remaining unmatched delimiters by inserting them at their original positions
+	for i := len(stack) - 1; i >= 0; i-- {
+		op := stack[i].pos
+		// Only insert if the position is valid
+		if op <= len(newNodes) {
+			// Insert the delimiter as plaintext at its original position
+			newNodes = slices.Insert(newNodes, op, nodes.TextNode{TextType: nodes.Text, Text: stack[i].marker})
+		} else {
+			// If position is invalid, append to the end
+			newNodes = append(newNodes, nodes.TextNode{TextType: nodes.Text, Text: stack[i].marker})
+		}
 	}
 
 	return newNodes // return nodes tree
