@@ -326,13 +326,34 @@ SSGo currently supports approximately 70% of the CommonMark specification, plus 
 - Subscript (`~text~`)
 - Superscript (`^text^`)
 - Highlighting (`==text==`)
+- Hard line breaks (two spaces or backslash at end of line)
+
+### Autolinks and Raw HTML
+
+- **GFM-style autolinks** are supported:
+  - Bare domains (e.g., `<example.com>`, `<sub.example.com>`, `<example.com/path>`, `<example.com:8080>`, etc.)
+  - Protocol autolinks (e.g., `<http://example.com>`, `<https://example.com>`, etc.)
+  - Email autolinks (e.g., `<user@example.com>`, `<user:pass@example.com>`, etc.)
+  - Authentication in email autolinks is supported, but passwords are stripped from the rendered link and only the username and domain are shown/linked.
+  - Autolinks are only created if the TLD is a real, recognized public suffix (using the publicsuffix library).
+  - Protocol autolinks require at least one character after the protocol (e.g., `<http://>` is not autolinked).
+  - Invalid/fake TLDs (like `.url`, `.test`, `.invalid`, `.localhost`) are not autolinked.
+  - Reserved/fake TLDs are not autolinked.
+
+- **Raw HTML blocks and comments** are preserved and rendered as HTML, not escaped. This includes:
+  - HTML tags (e.g., `<div>`, `<span style="color: red;">`, etc.)
+  - HTML comments (e.g., `<!-- comment -->`)
+  - HTML blocks are not wrapped in `<p>` or escaped, and are passed through to the output as-is.
+
+- **Block splitting** has been improved:
+  - Each autolink or raw HTML tag/comment on its own line is treated as its own block, ensuring correct parsing and rendering.
 
 ### Planned Features
 
 - Nested lists and blockquotes
 - Task lists
 - Definition lists
-- HTML blocks
+- HTML blocks (multi-line)
 - Indented code blocks
 
 ## Contributing

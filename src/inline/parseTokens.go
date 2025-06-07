@@ -105,13 +105,31 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 			i++
 
 		case "<":
-			var href string
+			var href, visible string
 			if strings.Contains(t.Value, "@") {
-				href = "mailto:" + t.Value
+				at := strings.LastIndex(t.Value, "@")
+				colon := strings.Index(t.Value, ":")
+				if colon != -1 && colon < at {
+					// Remove everything from colon up to @
+					visible = t.Value[:colon] + t.Value[at:]
+					href = "mailto:" + visible
+				} else {
+					visible = t.Value
+					href = "mailto:" + t.Value
+				}
 			} else {
 				href = t.Value
+				visible = t.Value
+				if strings.HasPrefix(href, "www.") {
+					href = "http://" + href
+				}
 			}
-			newNodes = append(newNodes, nodes.TextNode{TextType: nodes.Link, Url: href, Children: []nodes.TextNode{{TextType: nodes.Text, Text: t.Value}}})
+			// Create a link node with the URL as both href and text
+			newNodes = append(newNodes, nodes.TextNode{
+				TextType: nodes.Link,
+				Url:      href,
+				Children: []nodes.TextNode{{TextType: nodes.Text, Text: visible}},
+			})
 			i++
 
 		case "]", "(", ")": // closing link/image brackets and parens

@@ -3,6 +3,8 @@ package tokenizer
 import (
 	"regexp"
 	"strings"
+
+	"golang.org/x/net/publicsuffix"
 )
 
 const punct = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
@@ -15,23 +17,13 @@ type Token struct {
 	// Col   int
 }
 
-var emailRE = regexp.MustCompile(`^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`) // standard CommonMark email regex
+var emailRE = regexp.MustCompile(`^(?:[A-Za-z0-9._%+\-]+:)?[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`)
 
-// The below regex handles:
-//   - HTML comments            <!-- … -->
-//   - Simple open/end tags     <tag …> or </tag>
-//   - Declarations (e.g. <!DOCTYPE …>)
-//   - Processing instructions  <? … >
-//   - CDATA sections           <![CDATA[ … ]]>
-var htmlInlineRe = regexp.MustCompile(
-	`^(` +
-		`<!--[\s\S]*?-->` + // HTML comment
-		`|<!\[CDATA\[[\s\S]*?\]\]>` + // CDATA
-		`|<![A-Za-z][A-Za-z0-9-]*(?:\s+[^<>]*?)?>` + // DOCTYPE/declaration
-		`|<\?[^\n]*?\?>` + // Processing instruction
-		`|<\/?[A-Za-z][A-Za-z0-9-]*(?:\s+(?:[A-Za-z_:][A-Za-z0-9_.:-]*)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^ \t\r\n\f/>]*))?)*\s*\/?>` +
-		`)`,
-)
+// Protocol pattern for URLs (http://, https://, etc.)
+var protocolRE = regexp.MustCompile(`^(?:https?|ftp|ftps|sftp|ws|wss)://[^\s]+$`)
+
+// Improved GFM-style domain regex: matches only valid domains/URLs, no spaces or attributes, TLD 2-6 letters
+var gfmDomainRE = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}(?::[0-9]+)?(?:/[a-zA-Z0-9\-._~:/?#\[\]@!$&'()*+,;=%]*)?$`)
 
 func TokenizeInline(input string) []Token {
 	var out []Token
@@ -52,39 +44,47 @@ func TokenizeInline(input string) []Token {
 		// If the next characters form a valid CommonMark "raw HTML" chunk,
 		// consume it all as one token of kind="raw_html".
 		if r == '<' {
-			// Convert the suffix to a string so we can apply htmlInlineRe.
-			rest := string(runes[i:])
-			if loc := htmlInlineRe.FindStringIndex(rest); loc != nil {
-				// loc = [start‐index, end‐index] in bytes of rest.
-				matchStr := rest[loc[0]:loc[1]]
-				// Convert matchStr back to runes so we know how many runes we consumed:
-				matchRunes := []rune(matchStr)
-
-				out = append(out, Token{
-					Kind:  "raw_html",
-					Value: matchStr,
-				})
-				i += len(matchRunes)
-				continue
-			}
 			j := i + 1
 			for j < n && runes[j] != '>' {
 				j++
 			}
 			if j < n {
 				inner := string(runes[i+1 : j])
-				if emailRE.MatchString(inner) {
-					out = append(out, Token{Kind: "<", Value: inner}) // parser handles mailto:
-					i = j + 1
-					continue
-				}
-				if strings.HasPrefix(inner, "http://") || strings.HasPrefix(inner, "https://") { // check for other uri's
+				if protocolRE.MatchString(inner) {
 					out = append(out, Token{Kind: "<", Value: inner})
 					i = j + 1
 					continue
 				}
+				if emailRE.MatchString(inner) {
+					out = append(out, Token{Kind: "<", Value: inner})
+					i = j + 1
+					continue
+				}
+				if gfmDomainRE.MatchString(inner) {
+					// Extract the domain part (before any /, ?, #, or :)
+					domain := inner
+					for i, c := range domain {
+						if c == '/' || c == '?' || c == '#' || c == ':' {
+							domain = domain[:i]
+							break
+						}
+					}
+					// Remove user:pass@ if present
+					if at := strings.LastIndex(domain, "@"); at != -1 {
+						domain = domain[at+1:]
+					}
+					// Use publicsuffix to check if the TLD is real
+					if _, icann := publicsuffix.PublicSuffix(domain); icann {
+						out = append(out, Token{Kind: "<", Value: inner})
+						i = j + 1
+						continue
+					}
+					// Not a valid autolink, treat as text (escape angle brackets)
+					out = append(out, Token{Kind: "text", Value: "&lt;" + inner + "&gt;"})
+					i = j + 1
+					continue
+				}
 			}
-
 		}
 
 		if r == '`' {

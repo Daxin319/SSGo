@@ -11,7 +11,7 @@ import (
 	"github.com/Daxin319/SSGo/src/nodes"
 )
 
-var reg = regexp.MustCompile(`\\[ \t]*\n`)
+var reg = regexp.MustCompile(`(?:\\[ \t]*\n|[ ]{2,}\n)`)
 
 func MarkdownToHTMLNode(input string) nodes.TextNode {
 	lBreaks := reg.ReplaceAllString(input, "<br />\n")
@@ -25,7 +25,19 @@ func MarkdownToHTMLNode(input string) nodes.TextNode {
 	blcks := blocks.MarkdownToBlocks(s)
 	bNodes := []nodes.TextNode{}
 
+	// Import the HTML tag/comment regex from blocks
+	var htmlTagOrCommentRe = regexp.MustCompile(`^<(?:!--[\s\S]*?--|/?[a-zA-Z][a-zA-Z0-9-]*(?:\s+[^<>]*)?)>$`)
+
 	for _, blck := range blcks {
+		if htmlTagOrCommentRe.MatchString(strings.TrimSpace(blck)) {
+			// Render as raw HTML node
+			node = nodes.TextNode{
+				Text:     blck,
+				TextType: nodes.RawHTML,
+			}
+			bNodes = append(bNodes, node)
+			continue
+		}
 		bType := blocks.BlockToBlockType(blck)
 
 		switch bType {
