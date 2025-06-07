@@ -82,8 +82,8 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 			}
 
 		case "*", "**", "***", "_", "__", "___", "==":
-			processDelims(t.Kind, &stack, &newNodes) // handle this bullshit
-			i++                                      // next token
+			stack, newNodes = processDelims(t.Kind, stack, newNodes) // handle this bullshit
+			i++                                                      // next token
 
 		case "~~", "~", "^": // strikethrough or subscript or superscript
 			m := t.Kind
