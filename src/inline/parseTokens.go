@@ -136,7 +136,7 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 			newNodes = append(newNodes, nodes.TextNode{TextType: nodes.Text, Text: t.Value})
 			i++
 		default:
-			newNodes = append(newNodes, nodes.TextNode{TextType: nodes.Text, Text: t.Value})
+			newNodes = append(newNodes, autolink(t.Value)...)
 			i++
 		}
 	}

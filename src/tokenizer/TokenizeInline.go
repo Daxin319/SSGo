@@ -18,13 +18,13 @@ type Token struct {
 	// Col   int
 }
 
-var emailRE = regexp.MustCompile(`^(?:[A-Za-z0-9._%+\-]+:)?[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`)
+var EmailRE = regexp.MustCompile(`^(?:[A-Za-z0-9._%+\-]+:)?[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`)
 
 // Protocol pattern for URLs (http://, https://, etc.)
-var protocolRE = regexp.MustCompile(`^(?:https?|ftp|ftps|sftp|ws|wss)://[^\s]+$`)
+var ProtocolRE = regexp.MustCompile(`^(?:https?|ftp|ftps|sftp|ws|wss)://[^\s]+$`)
 
 // Improved GFM-style domain regex: matches only valid domains/URLs, no spaces or attributes, TLD 2-6 letters
-var gfmDomainRE = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}(?::[0-9]+)?(?:/[a-zA-Z0-9\-._~:/?#\[\]@!$&'()*+,;=%]*)?$`)
+var GfmDomainRE = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}(?::[0-9]+)?(?:/[a-zA-Z0-9\-._~:/?#\[\]@!$&'()*+,;=%]*)?$`)
 
 func TokenizeInline(input string) []Token {
 	fmt.Printf("Starting tokenization of input length %d\n", len(input))
@@ -53,17 +53,17 @@ func TokenizeInline(input string) []Token {
 			}
 			if j < n {
 				inner := string(runes[i+1 : j])
-				if protocolRE.MatchString(inner) {
+				if ProtocolRE.MatchString(inner) {
 					out = append(out, Token{Kind: "<", Value: inner})
 					i = j + 1
 					continue
 				}
-				if emailRE.MatchString(inner) {
+				if EmailRE.MatchString(inner) {
 					out = append(out, Token{Kind: "<", Value: inner})
 					i = j + 1
 					continue
 				}
-				if gfmDomainRE.MatchString(inner) {
+				if GfmDomainRE.MatchString(inner) {
 					// Extract the domain part (before any /, ?, #, or :)
 					domain := inner
 					for i, c := range domain {
