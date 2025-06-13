@@ -68,6 +68,9 @@ func (h *TextNode) Repr() string {
 }
 
 func (h *TextNode) ToHTML() string {
+	if h.TextType == RawHTML {
+		return h.Text
+	}
 	var cString string
 	switch h.Tag {
 	case "":
@@ -101,9 +104,6 @@ func (h *TextNode) ToHTML() string {
 	default:
 		if len(h.Children) == 0 {
 			if len(h.Props) == 0 {
-				if h.TextType == RawHTML {
-					return fmt.Sprintf("<%s>%s</%s>", h.Tag, h.Text, h.Tag)
-				}
 				return fmt.Sprintf("<%s>%s</%s>", h.Tag, escapeHTML(h.Text), h.Tag)
 			}
 			return fmt.Sprintf("<%s%s>%s</%s>", h.Tag, h.PropsToHTML(), escapeHTML(h.Text), h.Tag)

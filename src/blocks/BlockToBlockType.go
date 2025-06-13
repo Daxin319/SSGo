@@ -40,7 +40,7 @@ func BlockToBlockType(block string) BlockType {
 			return CodeBlock
 		}
 	}
-	if len(trimmed) >= 2 && trimmed[:2] == "> " {
+	if isBlockquote(block) {
 		return Quote
 	}
 	if len(trimmed) >= 2 && (trimmed[:2] == "- " || trimmed[:2] == "* ") {
@@ -56,11 +56,24 @@ func BlockToBlockType(block string) BlockType {
 // Helper funcs for BlockToBlockType //
 ///////////////////////////////////////
 
-// hrRe matches up to three leading spaces, then three or more of the same -, _, or *, with optional spaces/tabs between them
-var hrRe = regexp.MustCompile(`^[ ]{0,3}(?:-(?:[ \t]*-){2,}|_(?:[ \t]*_){2,}|\*(?:[ \t]*\*){2,})[ \t]*$`)
-
 func isThematicBreak(line string) bool {
-	return hrRe.MatchString(line)
+	trimmed := strings.TrimSpace(line)
+	if len(trimmed) < 3 {
+		return false
+	}
+	char := rune(trimmed[0])
+	if char != '*' && char != '-' && char != '_' {
+		return false
+	}
+	count := 0
+	for _, r := range trimmed {
+		if r == char {
+			count++
+		} else if r != ' ' {
+			return false
+		}
+	}
+	return count >= 3
 }
 
 var re = regexp.MustCompile(`^\d+\. `)
@@ -80,6 +93,16 @@ func isOrderedList(block string) bool {
 			return false
 		}
 		expected++
+	}
+	return true
+}
+
+func isBlockquote(block string) bool {
+	lines := strings.Split(block, "\n")
+	for _, line := range lines {
+		if !strings.HasPrefix(line, ">") {
+			return false
+		}
 	}
 	return true
 }

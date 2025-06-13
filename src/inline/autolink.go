@@ -57,7 +57,7 @@ func autolink(text string) []nodes.TextNode {
 			}
 			if _, icann := publicsuffix.PublicSuffix(domain); icann {
 				isLink = true
-				href = "http://" + potentialLink
+				href = "https://" + potentialLink
 			}
 		}
 

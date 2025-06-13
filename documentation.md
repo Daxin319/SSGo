@@ -15,10 +15,26 @@ SSGo is a static site generator that converts Markdown files to HTML, with suppo
   - [Inline](#inline)
   - [Tokenizer](#tokenizer)
   - [Nodes](#nodes)
-- [Markdown Support](#markdown-support)
-  - [Supported Block Elements](#supported-block-elements)
-  - [Supported Inline Elements](#supported-inline-elements)
-  - [Unsupported Features](#unsupported-features)
+- [SSGo Markdown Specification](#ssgo-markdown-specification)
+  - [Block Elements](#block-elements)
+    - [Thematic Breaks](#thematic-breaks)
+    - [ATX Headings](#atx-headings)
+    - [Fenced Code Blocks](#fenced-code-blocks)
+    - [Blockquotes](#blockquotes)
+    - [Lists](#lists)
+    - [Raw HTML Blocks](#raw-html-blocks)
+  - [Inline Elements](#inline-elements)
+    - [Emphasis and Strong Emphasis](#emphasis-and-strong-emphasis)
+    - [Strikethrough](#strikethrough)
+    - [Highlight](#highlight)
+    - [Subscript and Superscript](#subscript-and-superscript)
+    - [Code Spans](#code-spans)
+    - [Links and Images](#links-and-images)
+    - [Autolinks](#autolinks)
+    - [Raw HTML](#raw-html)
+    - [HTML Entities](#html-entities)
+    - [Hard Line Breaks](#hard-line-breaks)
+- [Unsupported Features](#unsupported-features)
 - [Contributing](#contributing)
 
 ## Quick Start Guide
@@ -190,40 +206,174 @@ Defines AST nodes and includes methods for HTML conversion.
 
 A method on `TextNode` that recursively converts an AST node and its children into an HTML string. It handles HTML escaping and correctly formats different tags.
 
-## Markdown Support
+## SSGo Markdown Specification
 
-### Supported Block Elements
+### Block Elements
 
--   **Headings**: ATX headings from `<h1>` to `<h6>` using `#`.
--   **Paragraphs**: Standard text blocks separated by newlines.
--   **Blockquotes**: Lines prefixed with `> `.
--   **Lists**:
-    -   Ordered lists using `1.`, `2.`, etc.
-    -   Unordered lists using `-` or `*`.
--   **Code Blocks**: Fenced code blocks using triple backticks (```) or tildes (~~~).
--   **Thematic Breaks**: Horizontal rules using `***`, `---`, or `___`.
--   **Raw HTML**: HTML tags are passed through directly.
+#### Thematic Breaks
 
-### Supported Inline Elements
+A line consisting of 3 or more `*`, `-`, or `_` characters, optionally separated by spaces.
 
--   **Emphasis**:
-    -   `*italic*` or `_italic_` for `<em>`.
-    -   `**bold**` or `__bold__` for `<strong>`.
-    -   `***bold and italic***` or `___bold and italic___` for `<strong><em>`.
--   **Strikethrough**: `~~strikethrough~~` for `<s>`.
--   **Highlight**: `==highlight==` for `<mark>`.
--   **Subscript**: `~subscript~` for `<sub>`.
--   **Superscript**: `^superscript^` for `<sup>`.
--   **Code Spans**: Inline code with single backticks: `` `code` ``.
--   **Links**: `[text](url "title")`.
--   **Images**: `![alt text](src "title")`.
--   **Autolinks**:
-    -   URL autolinks: `<http://example.com>`.
-    -   Email autolinks: `<foo@example.com>`.
--   **HTML Entities**: Named (`&copy;`), decimal (`&#169;`), and hex (`&#xA9;`) entities are decoded.
--   **Hard Line Breaks**: A backslash or two spaces at the end of a line creates a `<br>`.
+**Markdown:**
+```markdown
+---
+* * *
+```
+**HTML:**
+```html
+<hr />
+```
 
-### Unsupported Features
+#### ATX Headings
+
+A line prefixed with 1-6 `#` characters. If more than 6 `#` characters are used, it will be rendered as an `<h6>`.
+
+**Markdown:**
+```markdown
+# Heading 1
+## Heading 2
+```
+**HTML:**
+```html
+<h1>Heading 1</h1>
+<h2>Heading 2</h2>
+```
+
+#### Fenced Code Blocks
+
+A block of code surrounded by lines with 3 or more backticks (`` ` ``) or tildes (`~`). Language-specific syntax highlighting is not currently supported.
+
+**Markdown:**
+````markdown
+```
+func main() {
+    fmt.Println("Hello, World!")
+}
+```
+````
+**HTML:**
+```html
+<pre><code>func main() {
+    fmt.Println("Hello, World!")
+}
+</code></pre>
+```
+
+#### Blockquotes
+
+Lines prefixed with `> `.
+
+**Markdown:**
+```markdown
+> This is a blockquote.
+```
+**HTML:**
+```html
+<blockquote>
+  <p>This is a blockquote.</p>
+</blockquote>
+```
+
+#### Lists
+
+- **Unordered Lists**: List items prefixed with `-` or `*`.
+- **Ordered Lists**: List items prefixed with a number followed by a period (`.`).
+
+**Markdown:**
+```markdown
+- Apple
+- Banana
+
+1. First
+2. Second
+```
+**HTML:**
+```html
+<ul>
+  <li>Apple</li>
+  <li>Banana</li>
+</ul>
+<ol>
+  <li>First</li>
+  <li>Second</li>
+</ol>
+```
+
+#### Raw HTML Blocks
+HTML blocks are passed through directly without modification.
+
+**Markdown:**
+```markdown
+<div class="note">
+  <p>This is a raw HTML block.</p>
+</div>
+```
+**HTML:**
+```html
+<div class="note">
+  <p>This is a raw HTML block.</p>
+</div>
+```
+
+### Inline Elements
+
+#### Emphasis and Strong Emphasis
+
+- **Italic**: `*italic*` or `_italic_` becomes `<em>`.
+- **Bold**: `**bold**` or `__bold__` becomes `<strong>`.
+- **Bold and Italic**: `***text***` or `___text___` becomes `<strong><em>`.
+
+#### Strikethrough
+
+`~~strikethrough~~` becomes `<s>`.
+
+#### Highlight
+
+`==highlight==` becomes `<mark>`.
+
+#### Subscript and Superscript
+
+- **Subscript**: `~subscript~` becomes `<sub>`.
+- **Superscript**: `^superscript^` becomes `<sup>`.
+
+#### Code Spans
+
+Inline code is wrapped in single backticks: `` `code` `` becomes `<code>`.
+
+#### Links and Images
+
+- **Links**: `[text](url "title")` becomes `<a href="url" title="title">text</a>`.
+- **Images**: `![alt text](src "title")` becomes `<img src="src" alt="alt text" title="title" />`.
+
+#### Autolinks
+
+URLs and email addresses are automatically converted into links.
+- This applies to both plaintext links and those enclosed in angle brackets (`<>`).
+- If a protocol (like `http://` or `https://`) is missing, `https://` is automatically added.
+- For authenticated email links (`<user:pass@example.com>`), the password is removed for security, and the `href` becomes `mailto:user@example.com`.
+
+#### Raw HTML
+
+Inline HTML tags are passed through directly.
+
+**Markdown:**
+```markdown
+An <span style="color:red;">HTML</span> span.
+```
+**HTML:**
+```html
+<p>An <span style="color:red;">HTML</span> span.</p>
+```
+
+#### HTML Entities
+
+Named (`&copy;`), decimal (`&#169;`), and hex (`&#xA9;`) entities are decoded.
+
+#### Hard Line Breaks
+
+A backslash (`\`) or two spaces at the end of a line creates a `<br />`.
+
+## Unsupported Features
 
 The following features are not currently supported:
 

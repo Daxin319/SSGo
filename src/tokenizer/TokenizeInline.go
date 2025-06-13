@@ -24,7 +24,9 @@ var EmailRE = regexp.MustCompile(`^(?:[A-Za-z0-9._%+\-]+:)?[A-Za-z0-9._%+\-]+@[A
 var ProtocolRE = regexp.MustCompile(`^(?:https?|ftp|ftps|sftp|ws|wss)://[^\s]+$`)
 
 // Improved GFM-style domain regex: matches only valid domains/URLs, no spaces or attributes, TLD 2-6 letters
-var GfmDomainRE = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}(?::[0-9]+)?(?:/[a-zA-Z0-9\-._~:/?#\[\]@!$&'()*+,;=%]*)?$`)
+var GfmDomainRE = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}(?::[0-9]+)?(?:/[a-zA-Z0-9\-._~:/?#\[\]@!$&'()*+,;=%^]*)?$`)
+
+var rawHTMLTagRE = regexp.MustCompile(`^<(?:!--[\s\S]*?--|/?[a-zA-Z][a-zA-Z0-9-]*(?:\s[^>]*)?)>`)
 
 func TokenizeInline(input string) []Token {
 	fmt.Printf("Starting tokenization of input length %d\n", len(input))
@@ -47,6 +49,12 @@ func TokenizeInline(input string) []Token {
 		// If the next characters form a valid CommonMark "raw HTML" chunk,
 		// consume it all as one token of kind="raw_html".
 		if r == '<' {
+			remaining := string(runes[i:])
+			if match := rawHTMLTagRE.FindString(remaining); match != "" {
+				out = append(out, Token{Kind: "raw_html", Value: match})
+				i += len([]rune(match))
+				continue
+			}
 			j := i + 1
 			for j < n && runes[j] != '>' {
 				j++
@@ -82,11 +90,11 @@ func TokenizeInline(input string) []Token {
 						i = j + 1
 						continue
 					}
-					// Not a valid autolink, treat as text (escape angle brackets)
-					out = append(out, Token{Kind: "text", Value: "&lt;" + inner + "&gt;"})
-					i = j + 1
-					continue
 				}
+				// If we're here, it's not a valid autolink. Treat as raw text.
+				out = append(out, Token{Kind: "raw_text", Value: "&lt;" + inner + "&gt;"})
+				i = j + 1
+				continue
 			}
 		}
 
@@ -211,7 +219,7 @@ func TokenizeInline(input string) []Token {
 		j := i
 		for j < n {
 			c := runes[j] // current rune
-			if c == '\\' || c == '`' || c == '!' || strings.ContainsAny(string(c), "[]()*_~^") || (c == '=' && j+1 < n && runes[j+1] == '=') {
+			if c == '\\' || c == '`' || c == '!' || c == '<' || strings.ContainsAny(string(c), "[]()*_~^") || (c == '=' && j+1 < n && runes[j+1] == '=') {
 				break // delimiter
 			}
 			j++

@@ -6,6 +6,7 @@ import (
 
 	"github.com/Daxin319/SSGo/src/nodes"
 	"github.com/Daxin319/SSGo/src/tokenizer"
+	"golang.org/x/net/publicsuffix"
 )
 
 type delimRun struct {
@@ -21,16 +22,12 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 		t := tokens[i]  // start with the first token
 		switch t.Kind { // switch on text type
 		case "raw_html":
-			// Emit verbatim—no escaping or children—just pass through.
-			newNodes = append(newNodes, nodes.TextNode{
-				Text:     t.Value,
-				TextType: nodes.RawHTML, // treat as plain text in the AST, but Render will print it unescaped
-				Url:      "",
-				Tag:      "",
-				Value:    "",
-				Children: nil,
-				Props:    nil,
-			})
+			newNodes = append(newNodes, nodes.TextNode{Text: t.Value, TextType: nodes.RawHTML})
+			i++
+			continue
+
+		case "raw_text":
+			newNodes = append(newNodes, nodes.TextNode{TextType: nodes.Text, Text: t.Value})
 			i++
 			continue
 
@@ -58,6 +55,17 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 					inner = strings.TrimSpace(inner)
 					parts := strings.SplitN(inner, " ", 2)
 					url := parts[0]
+					if !strings.Contains(url, "://") && !strings.HasPrefix(url, "mailto:") && !strings.HasPrefix(url, "/") && !strings.HasPrefix(url, "./") && !strings.HasPrefix(url, "../") && !strings.HasPrefix(url, "#") {
+						if tokenizer.GfmDomainRE.MatchString(url) {
+							domain := url
+							if at := strings.LastIndex(domain, "@"); at != -1 {
+								domain = domain[at+1:]
+							}
+							if _, icann := publicsuffix.PublicSuffix(domain); icann {
+								url = "https://" + url
+							}
+						}
+					}
 					props := make(map[string]string)
 					if len(parts) > 1 {
 						rawTitle := parts[1]
@@ -106,11 +114,10 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 
 		case "<":
 			var href, visible string
-			if strings.Contains(t.Value, "@") {
+			if tokenizer.EmailRE.MatchString(t.Value) {
 				at := strings.LastIndex(t.Value, "@")
 				colon := strings.Index(t.Value, ":")
 				if colon != -1 && colon < at {
-					// Remove everything from colon up to @
 					visible = t.Value[:colon] + t.Value[at:]
 					href = "mailto:" + visible
 				} else {
@@ -120,8 +127,8 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 			} else {
 				href = t.Value
 				visible = t.Value
-				if strings.HasPrefix(href, "www.") {
-					href = "http://" + href
+				if !strings.Contains(href, "://") {
+					href = "https://" + href
 				}
 			}
 			// Create a link node with the URL as both href and text

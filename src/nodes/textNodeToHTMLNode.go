@@ -17,6 +17,11 @@ func textNodeToHTMLNodeInternal(n TextNode, depth int) TextNode { // convert a s
 		return n
 	}
 
+	// Preserve raw HTML nodes
+	if n.TextType == RawHTML {
+		return n
+	}
+
 	switch n.TextType {
 	case Strikethrough:
 		n.Tag = "s"

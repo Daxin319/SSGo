@@ -7,12 +7,6 @@ import (
 
 var rege = regexp.MustCompile(`^\s*$`)
 
-// Unified autolink regex: matches protocol autolinks, email autolinks (with optional user:pass:), and GFM-style domain autolinks
-var autolinkBlockRe = regexp.MustCompile(`^<((?:https?|ftp|ftps|sftp|ws|wss)://[^ >]+|(?:[A-Za-z0-9._%+\-]+:)?[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}|(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}(?::[0-9]+)?(?:/[a-zA-Z0-9\-._~:/?#\[\]@!$&'()*+,;=%]*)?)>$`)
-
-// Regex for HTML tags and comments
-var htmlTagOrCommentRe = regexp.MustCompile(`^<(?:!--[\s\S]*?--|/?[a-zA-Z][a-zA-Z0-9-]*(?:\s+[^<>]*)?)>$`)
-
 func MarkdownToBlocks(s string) []string {
 	lines := strings.Split(s, "\n")
 	var blocks []string
@@ -34,7 +28,9 @@ func MarkdownToBlocks(s string) []string {
 			flush()
 			continue
 		}
-		if autolinkBlockRe.MatchString(trimmed) || htmlTagOrCommentRe.MatchString(trimmed) {
+		// Only treat standalone HTML tags as blocks
+		if strings.HasPrefix(trimmed, "<") && strings.HasSuffix(trimmed, ">") &&
+			(strings.HasPrefix(trimmed, "<div") || strings.HasPrefix(trimmed, "<!--")) {
 			flush()
 			blocks = append(blocks, trimmed)
 			continue

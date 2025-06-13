@@ -30,10 +30,11 @@ func MarkdownToHTMLNode(input string) nodes.TextNode {
 
 	for _, blck := range blcks {
 		if htmlTagOrCommentRe.MatchString(strings.TrimSpace(blck)) {
-			// Render as raw HTML node
+			// Render as raw HTML node without any processing
 			node = nodes.TextNode{
 				Text:     blck,
 				TextType: nodes.RawHTML,
+				Tag:      "", // Ensure no tag is set for raw HTML
 			}
 			bNodes = append(bNodes, node)
 			continue
