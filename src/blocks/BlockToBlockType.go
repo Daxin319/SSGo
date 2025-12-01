@@ -19,7 +19,7 @@ const (
 )
 
 func BlockToBlockType(block string) BlockType {
-	trimmed := strings.TrimLeft(strings.TrimRight(block, " \n"), " \n")
+	trimmed := strings.TrimLeft(strings.TrimRight(block, " \r\n"), " \r\n")
 
 	if isThematicBreak(trimmed) {
 		return ThematicBreak
