@@ -23,7 +23,7 @@ func main() {
 
 	err = fileio.CopyStaticToDocs(path)
 	if err != nil {
-		msg := fmt.Errorf("Error copying files: %v", err)
+		msg := fmt.Errorf("error copying files: %v", err)
 		fmt.Println(msg)
 	}
 
@@ -31,7 +31,10 @@ func main() {
 
 	if len(os.Args) > 1 && os.Args[1] == "serve" {
 		http.Handle("/", http.FileServer(http.Dir("./docs")))
-		http.ListenAndServe(":3000", nil)
+		err := http.ListenAndServe(":3000", nil)
+		if err != nil {
+			return
+		}
 	}
 
 }

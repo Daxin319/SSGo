@@ -18,7 +18,7 @@ func CopyStaticToDocs(path string) error {
 	err = os.CopyFS(pDir, dir)
 	if err != nil {
 		fmt.Println(err)
-		return errors.New("Error copying files")
+		return errors.New("error copying files")
 	}
 	return nil
 }

@@ -20,10 +20,10 @@ type Token struct {
 
 var EmailRE = regexp.MustCompile(`^(?:[A-Za-z0-9._%+\-]+:)?[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`)
 
-// Protocol pattern for URLs (http://, https://, etc.)
+// ProtocolRE Protocol pattern for URLs (http://, https://, etc.)
 var ProtocolRE = regexp.MustCompile(`^(?:https?|ftp|ftps|sftp|ws|wss)://[^\s]+$`)
 
-// Improved GFM-style domain regex: matches only valid domains/URLs, no spaces or attributes, TLD 2-6 letters
+// GfmDomainRE Improved GFM-style domain regex: matches only valid domains/URLs, no spaces or attributes, TLD 2-6 letters
 var GfmDomainRE = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}(?::[0-9]+)?(?:/[a-zA-Z0-9\-._~:/?#\[\]@!$&'()*+,;=%^]*)?$`)
 
 var rawHTMLTagRE = regexp.MustCompile(`^<(?:!--[\s\S]*?--|/?[a-zA-Z][a-zA-Z0-9-]*(?:\s[^>]*)?)>`)
