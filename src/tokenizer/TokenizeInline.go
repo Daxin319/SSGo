@@ -8,7 +8,7 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-const punct = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
+const punctuationCharacters = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 
 type Token struct {
 	Kind  string // delimiter type or "text"
@@ -21,7 +21,7 @@ type Token struct {
 var EmailRE = regexp.MustCompile(`^(?:[A-Za-z0-9._%+\-]+:)?[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`)
 
 // ProtocolRE Protocol pattern for URLs (http://, https://, etc.)
-var ProtocolRE = regexp.MustCompile(`^(?:https?|ftp|ftps|sftp|ws|wss)://[^\s]+$`)
+var ProtocolRE = regexp.MustCompile(`^(?:https?|ftp|ftps|sftp|ws|wss)://\S+$`)
 
 // GfmDomainRE Improved GFM-style domain regex: matches only valid domains/URLs, no spaces or attributes, TLD 2-6 letters
 var GfmDomainRE = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}(?::[0-9]+)?(?:/[a-zA-Z0-9\-._~:/?#\[\]@!$&'()*+,;=%^]*)?$`)
@@ -110,7 +110,7 @@ func TokenizeInline(input string) []Token {
 			k := j // scan for a matching run of exactly delimLen backticks
 			found := false
 			for k < n {
-				// Find next backtick
+				// Find the next backtick
 				for k < n && runes[k] != '`' {
 					k++
 				}
@@ -160,7 +160,7 @@ func TokenizeInline(input string) []Token {
 		}
 
 		if r == '\\' {
-			if i+1 < n && strings.ContainsRune(punct, runes[i+1]) {
+			if i+1 < n && strings.ContainsRune(punctuationCharacters, runes[i+1]) {
 				out = append(out, Token{Kind: "text", Value: string(runes[i+1])})
 				i += 2
 				continue
@@ -211,7 +211,7 @@ func TokenizeInline(input string) []Token {
 				m := string(r)
 				out = append(out, Token{Kind: m, Value: m})
 			}
-			i = j // reset position to end of run
+			i = j // reset position to the end of the run
 			continue
 		}
 
@@ -226,7 +226,7 @@ func TokenizeInline(input string) []Token {
 		}
 		if j > i {
 			fmt.Printf("Emitting text token from %d to %d: %q\n", i, j, string(runes[i:j]))
-			out = append(out, Token{Kind: "text", Value: string(runes[i:j])}) // create text Token and append
+			out = append(out, Token{Kind: "text", Value: string(runes[i:j])}) // create a text Token and append
 			i = j                                                             // advance original position
 		} else {
 			// If we didn't find any text to emit, we need to handle the current character

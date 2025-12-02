@@ -9,7 +9,7 @@ import (
 
 var refDefs = map[string]struct{ URL, Title string }{}
 
-var defRe = regexp.MustCompile(`^\[([^\]]+)\]:\s*(\S+)(?:\s+"([^"]+)")?\s*$`)
+var defRe = regexp.MustCompile(`^\[([^]]+)]:\s*(\S+)(?:\s+"([^"]+)")?\s*$`)
 
 // func to extract reference links, the rest of the architecture hasn't been started yet
 func extractRefDefs(lines []string) []string {

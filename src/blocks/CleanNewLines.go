@@ -2,7 +2,7 @@ package blocks
 
 import "strings"
 
-// clean all whitespace and newline characters from paragraphs. if string is empty after stripping move past it
+// clean all whitespace and newline characters from paragraphs. if the string is empty after stripping, move past it
 
 func CleanNewlines(s string) string {
 	split := strings.Split(s, "\n")

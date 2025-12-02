@@ -6,12 +6,12 @@ import (
 )
 
 func ExtractTitle(s string) (string, string, error) {
-	blcks := MarkdownToBlocks(s)
+	blocks := MarkdownToBlocks(s)
 	var fixed []string
 	var title string
 	count := 0
 
-	for _, blck := range blcks {
+	for _, blck := range blocks {
 		bType := BlockToBlockType(blck)
 		if bType != Heading {
 			fixed = append(fixed, blck)

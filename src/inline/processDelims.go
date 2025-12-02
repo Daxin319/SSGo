@@ -19,10 +19,10 @@ func processDelims(m string, stack []delimRun, newNodes []nodes.TextNode) ([]del
 				content := slices.Clone(newNodes[op:])        // initialize content stack
 				newNodes = newNodes[:op]                      // set nodes stack equal to current nodes stack up to the current position
 				newNodes = append(newNodes, wrap(m, content)) // append content stack wrapped in parent delim
-				stack = slices.Delete(stack, i, i+1)          // pop token from stack
+				stack = slices.Delete(stack, i, i+1)          // pop token from the stack
 				return stack, newNodes
 			}
-			if len(stack[i].marker) == 3 && stack[i].marker[0] == char && length < 3 {
+			if len(stack[i].marker) == 3 && stack[i].marker[0] == char {
 				op := stack[i].pos
 				if len(newNodes) > op {
 					content := slices.Clone(newNodes[op:])
@@ -42,14 +42,14 @@ func processDelims(m string, stack []delimRun, newNodes []nodes.TextNode) ([]del
 		idx := -1
 		for j := len(stack) - 1; j >= 0; j-- {
 			if stack[j].marker[0] == char && len(stack[j].marker) <= remaining {
-				idx = j // set index to current stack position
+				idx = j // set index to the current stack position
 				break
 			}
 		}
 		if idx >= 0 {
-			mrk := stack[idx].marker                        // set marker2 to the marker at current stack index
+			mrk := stack[idx].marker                        // set marker2 to the marker at the current stack index
 			op := stack[idx].pos                            // set original position to current stack position
-			content := slices.Clone(newNodes[op:])          // initialize content stack of all nodes above this one in the nodes stack
+			content := slices.Clone(newNodes[op:])          // initialize the content stack of all nodes above this one in the node stack
 			newNodes = newNodes[:op]                        // set nodes stack equal to all nodes below this one in the stack
 			newNodes = append(newNodes, wrap(mrk, content)) // append content stack wrapped in parent delim to nodes stack
 			stack = slices.Delete(stack, idx, idx+1)        // pop this token off the stack

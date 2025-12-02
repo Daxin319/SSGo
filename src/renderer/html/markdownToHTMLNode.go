@@ -11,7 +11,7 @@ import (
 	"github.com/Daxin319/SSGo/src/nodes"
 )
 
-var reg = regexp.MustCompile(`(?:\\[ \t]*\n|[ ]{2,}\n)`)
+var reg = regexp.MustCompile(`\\[ \t]*\n| {2,}\n`)
 
 func MarkdownToHTMLNode(input string) nodes.TextNode {
 	lBreaks := reg.ReplaceAllString(input, "<br />\n")
@@ -22,54 +22,54 @@ func MarkdownToHTMLNode(input string) nodes.TextNode {
 	}
 
 	var node nodes.TextNode
-	blcks := blocks.MarkdownToBlocks(s)
-	bNodes := []nodes.TextNode{}
+	toBlocks := blocks.MarkdownToBlocks(s)
+	var blockNodes []nodes.TextNode
 
 	// Import the HTML tag/comment regex from blocks
 	var htmlTagOrCommentRe = regexp.MustCompile(`^<(?:!--[\s\S]*?--|/?[a-zA-Z][a-zA-Z0-9-]*(?:\s+[^<>]*)?)>$`)
 
-	for _, blck := range blcks {
-		if htmlTagOrCommentRe.MatchString(strings.TrimSpace(blck)) {
-			// Render as raw HTML node without any processing
+	for _, block := range toBlocks {
+		if htmlTagOrCommentRe.MatchString(strings.TrimSpace(block)) {
+			// Render as a raw HTML node without any processing
 			node = nodes.TextNode{
-				Text:     blck,
+				Text:     block,
 				TextType: nodes.RawHTML,
 				Tag:      "", // Ensure no tag is set for raw HTML
 			}
-			bNodes = append(bNodes, node)
+			blockNodes = append(blockNodes, node)
 			continue
 		}
-		bType := blocks.BlockToBlockType(blck)
+		blockType := blocks.BlockToBlockType(block)
 
-		switch bType {
+		switch blockType {
 		case blocks.ThematicBreak:
 			node = nodes.TextNode{
 				Tag:   "hr",
 				Props: make(map[string]string),
 			}
-			bNodes = append(bNodes, node)
+			blockNodes = append(blockNodes, node)
 
 		case blocks.Heading:
-			trimmed := strings.TrimLeft(blck, "# ")
-			n, _ := blocks.HeaderNum(blck)
+			trimmed := strings.TrimLeft(block, "# ")
+			n, _ := blocks.HeaderNum(block)
 			children := inline.TextToChildren(trimmed)
 			node = nodes.TextNode{
 				Tag:      "h" + strconv.Itoa(n),
 				Children: nodes.MapToHTMLChildren(children, 0),
 			}
-			bNodes = append(bNodes, node)
+			blockNodes = append(blockNodes, node)
 
 		case blocks.Paragraph:
-			cleaned := blocks.CleanNewlines(blck)
+			cleaned := blocks.CleanNewlines(block)
 			children := inline.TextToChildren(cleaned)
 			node = nodes.TextNode{
 				Tag:      "p",
 				Children: nodes.MapToHTMLChildren(children, 0),
 			}
-			bNodes = append(bNodes, node)
+			blockNodes = append(blockNodes, node)
 
 		case blocks.CodeBlock:
-			lines := strings.Split(blck, "\n")
+			lines := strings.Split(block, "\n")
 			body := ""
 			if len(lines) > 2 {
 				raw := strings.Join(lines[1:len(lines)-1], "\n")
@@ -84,38 +84,38 @@ func MarkdownToHTMLNode(input string) nodes.TextNode {
 				Tag:      "pre",
 				Children: []nodes.TextNode{codeNode},
 			}
-			bNodes = append(bNodes, node)
+			blockNodes = append(blockNodes, node)
 
 		case blocks.Quote:
-			joined := blocks.CleanQuotes(blck)
+			joined := blocks.CleanQuotes(block)
 			children := inline.TextToChildren(joined)
 			node = nodes.TextNode{
 				Tag:      "blockquote",
 				Children: nodes.MapToHTMLChildren(children, 0),
 			}
-			bNodes = append(bNodes, node)
+			blockNodes = append(blockNodes, node)
 
 		case blocks.UnorderedList:
-			children := blocks.CleanLists(blck)
+			children := blocks.CleanLists(block)
 			node = nodes.TextNode{
 				Tag:      "ul",
 				Children: children,
 			}
-			bNodes = append(bNodes, node)
+			blockNodes = append(blockNodes, node)
 
 		case blocks.OrderedList:
-			children := blocks.CleanLists(blck)
+			children := blocks.CleanLists(block)
 			node = nodes.TextNode{
 				Tag:      "ol",
 				Children: children,
 			}
-			bNodes = append(bNodes, node)
+			blockNodes = append(blockNodes, node)
 
 		default:
 			continue
 		}
 	}
 
-	root := nodes.TextNode{Tag: "div", Children: bNodes}
+	root := nodes.TextNode{Tag: "div", Children: blockNodes}
 	return root
 }

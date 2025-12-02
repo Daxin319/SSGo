@@ -8,10 +8,10 @@ import (
 )
 
 func TextToTextNodes(s string) []nodes.TextNode {
-	toks := tokenizer.TokenizeInline(s)
+	tokens := tokenizer.TokenizeInline(s)
 	fmt.Println("TOKENS:")
-	for _, t := range toks {
+	for _, t := range tokens {
 		fmt.Printf("kind=%q value=%q\n", t.Kind, t.Value)
 	}
-	return ParseInlineStack(toks)
+	return ParseInlineStack(tokens)
 }

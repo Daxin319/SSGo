@@ -42,7 +42,7 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 				j++ // move forward to the next token
 			}
 			altNodes := ParseInlineStack(tokens[i+1 : j])     // parse all tokens from original pos +1 to current token
-			if j+1 < len(tokens) && tokens[j+1].Kind == "(" { // if not end of string and parens are in the correct stack locations for Link
+			if j+1 < len(tokens) && tokens[j+1].Kind == "(" { // if it's not the end of string and parens are in the correct stack locations for Link
 				k := j + 2
 				for k < len(tokens) && tokens[k].Kind != ")" { // parse until finding closing paren
 					k++
@@ -156,7 +156,7 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 			// Insert the delimiter as plaintext at its original position
 			newNodes = slices.Insert(newNodes, op, nodes.TextNode{TextType: nodes.Text, Text: stack[i].marker})
 		} else {
-			// If position is invalid, append to the end
+			// If the position is invalid, append to the end
 			newNodes = append(newNodes, nodes.TextNode{TextType: nodes.Text, Text: stack[i].marker})
 		}
 	}
