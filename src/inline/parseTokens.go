@@ -84,9 +84,62 @@ func ParseInlineStack(tokens []tokenizer.Token) []nodes.TextNode {
 					newNodes = append(newNodes, nodes.TextNode{TextType: nodes.Text, Text: t.Value}) // otherwise treat it as plaintext
 					i++                                                                              // move forward one token
 				}
-			} else {
+			} else if j+1 < len(tokens) && tokens[j+1].Kind == "[" { // Reference link [text][label]
+				k := j + 2
+				for k < len(tokens) && tokens[k].Kind != "]" {
+					k++
+				}
+				if k < len(tokens) {
+					label := ""
+					for _, tk := range tokens[j+2 : k] {
+						label += tk.Value
+					}
+					if label == "" {
+						// collapsed reference link [text][]
+						label = ""
+						for _, tk := range tokens[i+1 : j] {
+							label += tk.Value
+						}
+					}
+					url, title, ok := nodes.GetRef(label)
+					if ok {
+						props := make(map[string]string)
+						if title != "" {
+							props["title"] = title
+						}
+						typeEnum := nodes.Link
+						if isImage {
+							typeEnum = nodes.Image
+						}
+						newNodes = append(newNodes, nodes.TextNode{TextType: typeEnum, Url: url, Props: props, Children: altNodes})
+						i = k + 1
+						continue
+					}
+				}
 				newNodes = append(newNodes, nodes.TextNode{TextType: nodes.Text, Text: t.Value})
 				i++
+			} else {
+				// Shortcut reference link [text]
+				label := ""
+				for _, tk := range tokens[i+1 : j] {
+					label += tk.Value
+				}
+				url, title, ok := nodes.GetRef(label)
+				if ok {
+					props := make(map[string]string)
+					if title != "" {
+						props["title"] = title
+					}
+					typeEnum := nodes.Link
+					if isImage {
+						typeEnum = nodes.Image
+					}
+					newNodes = append(newNodes, nodes.TextNode{TextType: typeEnum, Url: url, Props: props, Children: altNodes})
+					i = j + 1
+				} else {
+					newNodes = append(newNodes, nodes.TextNode{TextType: nodes.Text, Text: t.Value})
+					i++
+				}
 			}
 
 		case "*", "**", "***", "_", "__", "___", "==":

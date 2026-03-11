@@ -2,7 +2,6 @@ package blocks
 
 import (
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -80,29 +79,10 @@ var re = regexp.MustCompile(`^\d+\. `)
 
 func isOrderedList(block string) bool {
 	split := strings.Split(block, "\n")
-	expected := 1
-	for _, line := range split {
-		trimmed := strings.TrimLeft(line, " ")
-		match := re.FindStringSubmatch(trimmed)
-		if len(match) < 1 {
-			return false
-		}
-		trim := strings.TrimRight(match[0], ". ")
-		n, err := strconv.Atoi(trim)
-		if err != nil || n != expected {
-			return false
-		}
-		expected++
-	}
-	return true
+	firstLine := strings.TrimLeft(split[0], " ")
+	return isListItemStart(firstLine) && (len(firstLine) > 0 && firstLine[0] >= '0' && firstLine[0] <= '9')
 }
 
 func isBlockquote(block string) bool {
-	lines := strings.Split(block, "\n")
-	for _, line := range lines {
-		if !strings.HasPrefix(line, ">") {
-			return false
-		}
-	}
-	return true
+	return strings.HasPrefix(block, ">")
 }

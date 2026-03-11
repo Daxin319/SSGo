@@ -10,33 +10,110 @@ import (
 func CleanLists(block string) []nodes.TextNode {
 	lines := strings.Split(block, "\n")
 	var newNodes []nodes.TextNode
+	var currentItem []string
+	var sublines []string
+	var subIndent int = -1
 
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line) // trim whitespace and skip if empty after trimming
-		if trimmed == "" {
-			continue
+	flushItem := func() {
+		if len(currentItem) > 0 {
+			content := strings.Join(currentItem, " ")
+			children := inline.TextToChildren(content)
+			children = nodes.MapToHTMLChildren(children, 0)
+
+			if len(sublines) > 0 {
+				subBlock := strings.Join(sublines, "\n")
+				subType := BlockToBlockType(subBlock)
+				var subTag string
+				if subType == UnorderedList {
+					subTag = "ul"
+				} else if subType == OrderedList {
+					subTag = "ol"
+				}
+
+				if subTag != "" {
+					subChildren := CleanLists(subBlock)
+					children = append(children, nodes.TextNode{
+						Tag:      subTag,
+						Children: subChildren,
+					})
+				}
+			}
+
+			newNodes = append(newNodes, nodes.TextNode{
+				Tag:      "li",
+				Children: children,
+			})
+			currentItem = nil
+			sublines = nil
+			subIndent = -1
 		}
-
-		content := stripListMarker(trimmed) // strip list markers, convert to child nodes, map HTML and append to nodes slice to be returned
-		children := inline.TextToChildren(content)
-		children = nodes.MapToHTMLChildren(children, 0)
-
-		newNodes = append(newNodes, nodes.TextNode{
-			Tag:      "li",
-			Children: children,
-		})
 	}
 
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		trimmed := strings.TrimLeft(line, " ")
+		indent := len(line) - len(trimmed)
+
+		if indent == 0 && isListItemStart(trimmed) {
+			flushItem()
+			currentItem = append(currentItem, stripListMarker(trimmed))
+		} else if indent >= 2 {
+			// Use the indentation level of the first sub-line
+			if subIndent == -1 {
+				subIndent = indent
+			}
+			subline := line
+			if len(subline) >= subIndent {
+				subline = subline[subIndent:]
+			} else {
+				subline = strings.TrimLeft(subline, " ")
+			}
+			sublines = append(sublines, subline)
+		} else {
+			// This is a continuation of the current item's text
+			currentItem = append(currentItem, strings.TrimSpace(line))
+		}
+	}
+	flushItem()
+
 	return newNodes
+}
+
+func isListItemStart(line string) bool {
+	if strings.HasPrefix(line, "- ") || strings.HasPrefix(line, "* ") {
+		return true
+	}
+	// Match 1. 2. etc.
+	for i, r := range line {
+		if r >= '0' && r <= '9' {
+			continue
+		}
+		if r == '.' && i > 0 && i+1 < len(line) && line[i+1] == ' ' {
+			return true
+		}
+		break
+	}
+	return false
 }
 
 func stripListMarker(line string) string {
 	if strings.HasPrefix(line, "- ") || strings.HasPrefix(line, "* ") {
 		return line[2:]
 	}
-	for i := range len(line) {
-		if line[i] >= '0' && line[i] <= '9' && i+1 < len(line) && line[i+1] == '.' {
-			return strings.TrimSpace(line[i+2:])
+	dotIdx := strings.Index(line, ". ")
+	if dotIdx != -1 {
+		// Check if everything before dot is digits
+		isDigits := true
+		for i := 0; i < dotIdx; i++ {
+			if line[i] < '0' || line[i] > '9' {
+				isDigits = false
+				break
+			}
+		}
+		if isDigits {
+			return strings.TrimSpace(line[dotIdx+1:])
 		}
 	}
 	return line

@@ -11,13 +11,13 @@ func CleanQuotes(s string) string {
 	var fixed []string
 
 	for _, item := range split {
-		trimmed := strings.TrimLeft(item, "> ")
-		if len(trimmed) == 0 {
-			trimmed = "<br>"
+		trimmed := item
+		if strings.HasPrefix(item, "> ") {
+			trimmed = item[2:]
+		} else if strings.HasPrefix(item, ">") {
+			trimmed = item[1:]
 		}
 		fixed = append(fixed, trimmed)
 	}
-	joined := strings.Join(fixed, "<br>")
-
-	return joined
+	return strings.Join(fixed, "\n")
 }

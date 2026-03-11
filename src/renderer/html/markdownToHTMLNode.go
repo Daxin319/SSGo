@@ -21,14 +21,30 @@ func MarkdownToHTMLNode(input string) nodes.TextNode {
 		fmt.Printf("%02d: %q (%[2]U)\n", i, r)
 	}
 
-	var node nodes.TextNode
 	toBlocks := blocks.MarkdownToBlocks(s)
+	// First pass: extract reference definitions from all blocks
+	for _, block := range toBlocks {
+		blocks.ExtractRefDefs(block)
+	}
+
+	blockNodes := markdownToBlockNodes(toBlocks)
+
+	root := nodes.TextNode{Tag: "div", Children: blockNodes}
+	return root
+}
+
+func markdownToBlockNodes(toBlocks []string) []nodes.TextNode {
 	var blockNodes []nodes.TextNode
+	var node nodes.TextNode
 
 	// Import the HTML tag/comment regex from blocks
 	var htmlTagOrCommentRe = regexp.MustCompile(`^<(?:!--[\s\S]*?--|/?[a-zA-Z][a-zA-Z0-9-]*(?:\s+[^<>]*)?)>$`)
 
 	for _, block := range toBlocks {
+		block = blocks.ExtractRefDefs(block)
+		if strings.TrimSpace(block) == "" {
+			continue
+		}
 		if htmlTagOrCommentRe.MatchString(strings.TrimSpace(block)) {
 			// Render as a raw HTML node without any processing
 			node = nodes.TextNode{
@@ -88,10 +104,11 @@ func MarkdownToHTMLNode(input string) nodes.TextNode {
 
 		case blocks.Quote:
 			joined := blocks.CleanQuotes(block)
-			children := inline.TextToChildren(joined)
+			subBlocks := blocks.MarkdownToBlocks(joined)
+			children := markdownToBlockNodes(subBlocks)
 			node = nodes.TextNode{
 				Tag:      "blockquote",
-				Children: nodes.MapToHTMLChildren(children, 0),
+				Children: children,
 			}
 			blockNodes = append(blockNodes, node)
 
@@ -115,7 +132,5 @@ func MarkdownToHTMLNode(input string) nodes.TextNode {
 			continue
 		}
 	}
-
-	root := nodes.TextNode{Tag: "div", Children: blockNodes}
-	return root
+	return blockNodes
 }
