@@ -23,6 +23,7 @@ SSGo is a static site generator that converts Markdown files to HTML, with suppo
     - [Blockquotes](#blockquotes)
     - [Lists](#lists)
     - [Raw HTML Blocks](#raw-html-blocks)
+    - [Link Reference Definitions](#link-reference-definitions)
   - [Inline Elements](#inline-elements)
     - [Emphasis and Strong Emphasis](#emphasis-and-strong-emphasis)
     - [Strikethrough](#strikethrough)
@@ -43,14 +44,14 @@ This program is designed to copy static resources into the `/docs` directory ins
 
 ### Prerequisites
 
-- Go version 1.22 or later
+- Go version 1.24 or later
 - Git (I refuse to believe you don't already have git installed if you're reading this, but just in case: [Git download](https://git-scm.com/downloads) or on Linux: `sudo pacman -S git` or `sudo apt install git`)
 - A text editor
 - Basic knowledge of Markdown
 
 ### Installation
 
-1. Install Go version 1.22 or later:
+1. Install Go version 1.24 or later:
    ```bash
    curl -sS https://webi.sh/golang | sh
    ```
@@ -92,7 +93,7 @@ This program is designed to copy static resources into the `/docs` directory ins
 SSGo is built with a modular architecture that separates concerns into distinct packages, making the codebase maintainable and extensible. The conversion process follows these steps:
 
 1.  **File System Operations**: The `fileio` package copies static assets from `/static` to `/docs` and then recursively finds Markdown files in `/content`.
-2.  **Markdown Processing**: For each Markdown file, the content is parsed into blocks (paragraphs, headings, etc.). Each block is then processed to parse inline elements (bold, links, etc.).
+2.  **Markdown Processing**: For each Markdown file, the content is parsed into blocks (paragraphs, headings, etc.). A first pass extracts link reference definitions, and then each block is processed to parse inline elements (bold, links, etc.).
 3.  **AST Generation**: The parsing process generates an Abstract Syntax Tree (AST) where each element of the document is a node.
 4.  **HTML Generation**: The `html` renderer traverses the AST and generates the final HTML output, which is then written to the `/docs` directory.
 
@@ -134,7 +135,7 @@ Copies static assets from the `static/` directory to the `docs/` directory.
 
 Recursively processes directories and files from `/content` to `/docs`, creating a mirror directory structure.
 
-#### `func generatePage(fromDirPath, destDirPath, templatePath, basePath string)`
+#### `func generatePage(fromPath, destPath, templatePath, basePath string)`
 
 Handles individual page generation:
 1. Reads markdown content from a source file.
@@ -153,8 +154,9 @@ Located in `renderer/html`, this package converts the Markdown AST to an HTML st
 The main conversion function that:
 1. Sanitizes input by removing null characters and normalizing line breaks.
 2. Splits the input string into blocks.
-3. Creates AST nodes for each block type (headings, paragraphs, lists, etc.).
-4. Returns a root `div` node containing the full AST.
+3. Performs a first pass to extract link reference definitions from all blocks.
+4. Creates AST nodes for each block type (headings, paragraphs, lists, etc.).
+5. Returns a root `div` node containing the full AST.
 
 ### blocks
 
@@ -162,7 +164,15 @@ Handles block-level markdown parsing.
 
 #### `func MarkdownToBlocks(input string) []string`
 
-Splits a Markdown string into a slice of block-level strings. It correctly separates different block elements like paragraphs, lists, and code blocks based on blank lines.
+Splits a Markdown string into a slice of block-level strings. It correctly separates different block elements like paragraphs, lists, and code blocks based on blank lines, while preserving fenced code blocks.
+
+#### `func ExtractRefDefs(block string) string`
+
+Scans a block for link reference definitions (e.g., `[label]: url "title"`). It extracts and stores these definitions in the `nodes` package and returns the block content with the definitions removed.
+
+#### `func ExtractTitle(s string) (string, string, error)`
+
+Scans all blocks in a document to find the first H1 heading (`# title`). It returns the text of that heading as the title, and the rest of the document content joined back together. If no H1 is found, it returns an error.
 
 #### `func BlockToBlockType(block string) BlockType`
 
@@ -204,7 +214,7 @@ Defines AST nodes and includes methods for HTML conversion.
 
 #### `func (h *TextNode) ToHTML() string`
 
-A method on `TextNode` that recursively converts an AST node and its children into an HTML string. It handles HTML escaping and correctly formats different tags.
+A method on `TextNode` that recursively converts an AST node and its children into an HTML string. It handles HTML escaping, correctly formats different tags, and adjusts asset paths to include the `basePath`.
 
 ## SSGo Markdown Specification
 
@@ -261,16 +271,21 @@ func main() {
 
 #### Blockquotes
 
-Lines prefixed with `> `.
+Lines prefixed with `> `. Blockquotes support nested blockquotes and other block-level elements.
 
 **Markdown:**
 ```markdown
 > This is a blockquote.
+>
+> > This is a nested blockquote.
 ```
 **HTML:**
 ```html
 <blockquote>
   <p>This is a blockquote.</p>
+  <blockquote>
+    <p>This is a nested blockquote.</p>
+  </blockquote>
 </blockquote>
 ```
 
@@ -278,24 +293,37 @@ Lines prefixed with `> `.
 
 - **Unordered Lists**: List items prefixed with `-` or `*`.
 - **Ordered Lists**: List items prefixed with a number followed by a period (`.`).
+- **Nested Lists**: Lists can be nested by indenting sub-items by at least two spaces.
 
 **Markdown:**
 ```markdown
 - Apple
+  - Fuji
+  - Gala
 - Banana
 
 1. First
 2. Second
+   1. Sub-item
 ```
 **HTML:**
 ```html
 <ul>
-  <li>Apple</li>
+  <li>Apple
+    <ul>
+      <li>Fuji</li>
+      <li>Gala</li>
+    </ul>
+  </li>
   <li>Banana</li>
 </ul>
 <ol>
   <li>First</li>
-  <li>Second</li>
+  <li>Second
+    <ol>
+      <li>Sub-item</li>
+    </ol>
+  </li>
 </ol>
 ```
 
@@ -313,6 +341,15 @@ HTML blocks are passed through directly without modification.
 <div class="note">
   <p>This is a raw HTML block.</p>
 </div>
+```
+
+#### Link Reference Definitions
+
+A line starting with a label in brackets, followed by a colon, a URL, and an optional title. These are used for reference-style links and are not rendered directly.
+
+**Markdown:**
+```markdown
+[label]: https://example.com "Optional Title"
 ```
 
 ### Inline Elements
@@ -342,8 +379,24 @@ Inline code is wrapped in single backticks: `` `code` `` becomes `<code>`.
 
 #### Links and Images
 
-- **Links**: `[text](url "title")` becomes `<a href="url" title="title">text</a>`.
-- **Images**: `![alt text](src "title")` becomes `<img src="src" alt="alt text" title="title" />`.
+- **Inline Links**: `[text](url "title")` becomes `<a href="url" title="title">text</a>`.
+- **Inline Images**: `![alt text](src "title")` becomes `<img src="src" alt="alt text" title="title" />`.
+- **Reference-Style Links**: `[text][label]` or `[text][]` or `[text]` use the URL and title from a matching link reference definition.
+- **Reference-Style Images**: `![alt text][label]` uses the URL and title from a matching link reference definition.
+
+**Markdown:**
+```markdown
+[Go to Google][google]
+![Gopher][gopher-img]
+
+[google]: https://google.com
+[gopher-img]: https://golang.org/doc/gopher/frontpage.png "The Go Gopher"
+```
+**HTML:**
+```html
+<p><a href="https://google.com">Go to Google</a>
+<img src="https://golang.org/doc/gopher/frontpage.png" alt="Gopher" title="The Go Gopher" /></p>
+```
 
 #### Autolinks
 
@@ -377,10 +430,7 @@ A backslash (`\`) or two spaces at the end of a line creates a `<br />`.
 
 The following features are not currently supported:
 
--   **Nested Lists**: Lists inside other list items.
--   **Nested Blockquotes**: Blockquotes inside other blockquotes.
--   **Mixed Block Elements**: Block-level elements (like paragraphs or code blocks) inside list items or blockquotes.
--   **Reference-Style Links and Images**: e.g., `[text][label]`.
+-   **Mixed Block Elements inside List Items**: Only nested lists are currently supported inside list items.
 -   **Task Lists**: e.g., `- [x] Done`.
 -   **Definition Lists**.
 -   **Tables**.
