@@ -271,13 +271,17 @@ func main() {
 
 #### Blockquotes
 
-Lines prefixed with `> `. Blockquotes support nested blockquotes and other block-level elements.
+Lines prefixed with `> `. Blockquotes support nested blockquotes and all other block-level elements (headings, lists, code blocks, etc.).
 
 **Markdown:**
 ```markdown
 > This is a blockquote.
 >
 > > This is a nested blockquote.
+>
+> ```go
+> func main() {}
+> ```
 ```
 **HTML:**
 ```html
@@ -286,6 +290,7 @@ Lines prefixed with `> `. Blockquotes support nested blockquotes and other block
   <blockquote>
     <p>This is a nested blockquote.</p>
   </blockquote>
+  <pre><code>func main() {}</code></pre>
 </blockquote>
 ```
 
@@ -293,18 +298,15 @@ Lines prefixed with `> `. Blockquotes support nested blockquotes and other block
 
 - **Unordered Lists**: List items prefixed with `-` or `*`.
 - **Ordered Lists**: List items prefixed with a number followed by a period (`.`).
-- **Nested Lists**: Lists can be nested by indenting sub-items by at least two spaces.
+- **Nested Elements**: Lists can contain other block-level elements (blockquotes, code blocks, headings, or nested lists) by indenting them by at least two spaces.
+- **Loose Lists**: If list items contain blank lines, their content is wrapped in `<p>` tags.
 
 **Markdown:**
 ```markdown
 - Apple
   - Fuji
-  - Gala
 - Banana
-
-1. First
-2. Second
-   1. Sub-item
+  > A yellow fruit.
 ```
 **HTML:**
 ```html
@@ -312,19 +314,14 @@ Lines prefixed with `> `. Blockquotes support nested blockquotes and other block
   <li>Apple
     <ul>
       <li>Fuji</li>
-      <li>Gala</li>
     </ul>
   </li>
-  <li>Banana</li>
-</ul>
-<ol>
-  <li>First</li>
-  <li>Second
-    <ol>
-      <li>Sub-item</li>
-    </ol>
+  <li>Banana
+    <blockquote>
+      <p>A yellow fruit.</p>
+    </blockquote>
   </li>
-</ol>
+</ul>
 ```
 
 #### Raw HTML Blocks
@@ -430,7 +427,6 @@ A backslash (`\`) or two spaces at the end of a line creates a `<br />`.
 
 The following features are not currently supported:
 
--   **Mixed Block Elements inside List Items**: Only nested lists are currently supported inside list items.
 -   **Task Lists**: e.g., `- [x] Done`.
 -   **Definition Lists**.
 -   **Tables**.

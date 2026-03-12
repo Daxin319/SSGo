@@ -13,3 +13,4 @@ Welcome to the SSGo Markdown Guide! This guide demonstrates both standard Markdo
 7. [Blockquotes](blockquotes/index.md) - Nested quotes and custom formatting
 8. [HTML and Entities](html-entities/index.md) - Raw HTML support and comprehensive entity handling
 9. [Line Breaks and Autolinks](line-breaks-autolinks/index.md) - Custom line break rules and enhanced autolink detection 
+10. [Nesting Features](nesting/index.md) - Support for nested elements like quotes in lists or code in quotes

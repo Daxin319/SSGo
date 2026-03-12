@@ -24,7 +24,7 @@ func MarkdownToBlocks(s string) []string {
 		}
 	}
 
-	for _, line := range lines {
+	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
 
 		// Handle fenced code blocks
@@ -46,8 +46,25 @@ func MarkdownToBlocks(s string) []string {
 		}
 
 		if trimmed == "" {
-			flush()
-			continue
+			// Peek ahead to see if the next non-empty line is indented.
+			// This allows list items to span multiple blocks.
+			isContinuation := false
+			for j := i + 1; j < len(lines); j++ {
+				nextTrimmed := strings.TrimSpace(lines[j])
+				if nextTrimmed == "" {
+					continue
+				}
+				// If the next non-empty line is indented by at least 2 spaces,
+				// it's a continuation of the current block.
+				if strings.HasPrefix(lines[j], "  ") {
+					isContinuation = true
+				}
+				break
+			}
+			if !isContinuation {
+				flush()
+				continue
+			}
 		}
 
 		current = append(current, line)

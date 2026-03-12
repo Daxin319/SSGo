@@ -11,10 +11,10 @@ import (
 	"github.com/Daxin319/SSGo/src/nodes"
 )
 
-var reg = regexp.MustCompile(`\\[ \t]*\n| {2,}\n`)
+var reg = regexp.MustCompile(`(\S)[ \t]*\\\n|(\S) {2,}\n`)
 
 func MarkdownToHTMLNode(input string) nodes.TextNode {
-	lBreaks := reg.ReplaceAllString(input, "<br />\n")
+	lBreaks := reg.ReplaceAllString(input, "$1$2<br />\n")
 	s := blocks.SanitizeNulls(lBreaks)
 	fmt.Println("RAW BYTES:")
 	for i, r := range s {
@@ -113,7 +113,9 @@ func markdownToBlockNodes(toBlocks []string) []nodes.TextNode {
 			blockNodes = append(blockNodes, node)
 
 		case blocks.UnorderedList:
-			children := blocks.CleanLists(block)
+			children := blocks.CleanLists(block, func(s string) []nodes.TextNode {
+				return markdownToBlockNodes(blocks.MarkdownToBlocks(s))
+			})
 			node = nodes.TextNode{
 				Tag:      "ul",
 				Children: children,
@@ -121,7 +123,9 @@ func markdownToBlockNodes(toBlocks []string) []nodes.TextNode {
 			blockNodes = append(blockNodes, node)
 
 		case blocks.OrderedList:
-			children := blocks.CleanLists(block)
+			children := blocks.CleanLists(block, func(s string) []nodes.TextNode {
+				return markdownToBlockNodes(blocks.MarkdownToBlocks(s))
+			})
 			node = nodes.TextNode{
 				Tag:      "ol",
 				Children: children,

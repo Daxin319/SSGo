@@ -7,12 +7,13 @@ import (
 	"github.com/Daxin319/SSGo/src/nodes"
 )
 
-func CleanLists(block string) []nodes.TextNode {
+func CleanLists(block string, blockParser func(string) []nodes.TextNode) []nodes.TextNode {
 	lines := strings.Split(block, "\n")
 	var newNodes []nodes.TextNode
 	var currentItem []string
 	var sublines []string
 	var subIndent int = -1
+	isLoose := false
 
 	flushItem := func() {
 		if len(currentItem) > 0 {
@@ -20,23 +21,17 @@ func CleanLists(block string) []nodes.TextNode {
 			children := inline.TextToChildren(content)
 			children = nodes.MapToHTMLChildren(children, 0)
 
+			if isLoose && len(children) > 0 {
+				children = []nodes.TextNode{{
+					Tag:      "p",
+					Children: children,
+				}}
+			}
+
 			if len(sublines) > 0 {
 				subBlock := strings.Join(sublines, "\n")
-				subType := BlockToBlockType(subBlock)
-				var subTag string
-				if subType == UnorderedList {
-					subTag = "ul"
-				} else if subType == OrderedList {
-					subTag = "ol"
-				}
-
-				if subTag != "" {
-					subChildren := CleanLists(subBlock)
-					children = append(children, nodes.TextNode{
-						Tag:      subTag,
-						Children: subChildren,
-					})
-				}
+				subNodes := blockParser(subBlock)
+				children = append(children, subNodes...)
 			}
 
 			newNodes = append(newNodes, nodes.TextNode{
@@ -46,11 +41,17 @@ func CleanLists(block string) []nodes.TextNode {
 			currentItem = nil
 			sublines = nil
 			subIndent = -1
+			isLoose = false
 		}
 	}
 
 	for _, line := range lines {
-		if line == "" {
+		trimmedLine := strings.TrimSpace(line)
+		if trimmedLine == "" {
+			isLoose = true
+			if len(sublines) > 0 {
+				sublines = append(sublines, "")
+			}
 			continue
 		}
 		trimmed := strings.TrimLeft(line, " ")
